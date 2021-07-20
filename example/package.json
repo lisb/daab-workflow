@@ -1,0 +1,30 @@
+{
+  "name": "example",
+  "version": "0.1.0",
+  "description": "example bot",
+  "author": "krdlab",
+  "private": true,
+  "keywords": [
+    "hubot",
+    "direct",
+    "bot",
+    "daab"
+  ],
+  "scripts": {
+    "build": "rm -rf ./scripts/*.js; tsc",
+    "start": "env DISABLE_NPM_INSTALL=true bin/hubot run"
+  },
+  "dependencies": {
+    "forever": "^4.0.1",
+    "lisb-hubot": "^3.3.2",
+    "lisb-hubot-redis-brain": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 2,
+    "printWidth": 100
+  }
+}

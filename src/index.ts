@@ -3,8 +3,34 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-function hoge(): string {
-  return 'hoge';
+import { DaabActions, withSession } from 'daab-session';
+import { Workflows, WorkflowContext } from './workflow';
+
+declare module 'daab-session' {
+  interface SessionData {
+    context: WorkflowContext;
+  }
 }
 
-console.log(hoge());
+export function workflow(dirPath: string) {
+  const workflows = Workflows.load(dirPath);
+  console.info(workflows);
+
+  const handlers: DaabActions = (robot) => {
+    robot.respond(/(.+)$/i, (res) => {
+      if (res.match[1] == '/list') {
+        res.session?.invalidate();
+        res.send({
+          question: '申請を選択してください。',
+          options: workflows.names,
+        });
+      } else {
+        // TODO
+      }
+    });
+
+    robot.respond('select', (res) => {});
+
+  };
+  return withSession(handlers);
+}

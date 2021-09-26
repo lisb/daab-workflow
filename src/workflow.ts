@@ -15,7 +15,8 @@ export interface WorkflowStep {
   if: boolean | undefined;
   action: string;
   with: unknown;
-  exitFlow: boolean;
+  nowait: boolean | undefined;
+  exitFlow: boolean | undefined;
 }
 
 export const DefaultAction = {
@@ -28,6 +29,14 @@ export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction]
 
 export function isDefaultAction(s: string): s is DefaultActionType {
   return !!s && Object.values(DefaultAction).some((a) => a === s);
+}
+
+export function isCustomAction(s: string): boolean {
+  return !!s && s.startsWith('custom:');
+}
+
+export function getCustomActionName(s: string): string {
+  return s.substring('custom:'.length);
 }
 
 export type DefaultActionWith =

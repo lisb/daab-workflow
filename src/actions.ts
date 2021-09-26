@@ -16,8 +16,12 @@ import {
   isDaabMessageTaskArgs,
 } from './workflow';
 
+export class ActionResponse {
+  constructor(public readonly data: unknown = {}) {}
+}
+
 export interface Action {
-  execute(): Promise<void>;
+  execute(): Promise<ActionResponse | undefined>;
 }
 
 export class MessageAction implements Action {
@@ -25,8 +29,7 @@ export class MessageAction implements Action {
     readonly action: DefaultActionType,
     readonly args: DefaultActionWith,
     readonly to: string | undefined,
-    readonly res: Response<any>,
-    readonly context: WorkflowContext
+    readonly res: Response<any>
   ) {}
 
   private getTargetTalk() {
@@ -52,7 +55,7 @@ export class MessageAction implements Action {
     return found;
   }
 
-  execute(): Promise<void> {
+  async execute(): Promise<ActionResponse | undefined> {
     const content = this.createContent(this.action, this.args);
     if (this.to) {
       const talk = this.getTargetTalk();
@@ -60,7 +63,7 @@ export class MessageAction implements Action {
     } else {
       this.res.send(content);
     }
-    return Promise.resolve();
+    return undefined;
   }
 
   // ! FIXME: 実装が雑
@@ -91,5 +94,19 @@ export class MessageAction implements Action {
       };
     }
     throw new Error(`unknown action: ${action}`);
+  }
+}
+
+type CustomActionFunction = (args: any) => Promise<ActionResponse | undefined>;
+
+export class CustomAction implements Action {
+  private readonly f: CustomActionFunction;
+
+  constructor(private readonly name: string, private readonly args: unknown) {
+    this.f = require(name);
+  }
+
+  async execute(): Promise<ActionResponse | undefined> {
+    return this.f(this.args);
   }
 }

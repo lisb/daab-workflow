@@ -8,7 +8,7 @@ import mustache from 'mustache';
 import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
-import { Action, MessageAction } from './actions';
+import { Action, CustomAction, MessageAction } from './actions';
 import {
   DirectUser,
   DirectTalk,
@@ -26,6 +26,8 @@ import {
   Workflow,
   WorkflowStep,
   DefaultActionWith,
+  isCustomAction,
+  getCustomActionName,
 } from './workflow';
 import { Repository } from './repository';
 
@@ -219,7 +221,10 @@ export class WorkflowContext {
     const action = wstep.action;
     if (isDefaultAction(action)) {
       const args = wstep.with as DefaultActionWith;
-      return [wstep, new MessageAction(action, args, args.to, res, this)];
+      return [wstep, new MessageAction(action, args, args.to, res)];
+    }
+    if (isCustomAction(action)) {
+      return [wstep, new CustomAction(getCustomActionName(action), wstep.with)];
     }
     throw new Error('Action is not implemented.');
   }
@@ -254,8 +259,19 @@ export class WorkflowContext {
       await this.repository.saveUserContext(uc);
       await this.repository.saveWorkflowContext(this);
 
-      await action.execute();
-      if (next.exitFlow || this.isLastStep) {
+      const ar = await action.execute();
+      if (ar && step.id) {
+        this.data[step.id] = {
+          ...this.data[step.id],
+          response: ar.data,
+        };
+      }
+      if (step.nowait) {
+        this.runNextAction(res);
+        return;
+      }
+
+      if (step.exitFlow || this.isLastStep) {
         await this.exitWorkflow();
       }
     } else {
@@ -283,7 +299,17 @@ export class WorkflowContext {
     await this.repository.saveUserContext(uc);
     await this.repository.saveWorkflowContext(this);
 
-    await action.execute();
+    const ar = await action.execute();
+    if (ar && step.id) {
+      this.data[step.id] = {
+        ...this.data[step.id],
+        response: ar.data,
+      };
+    }
+    if (step.nowait) {
+      this.runNextAction(res);
+      return;
+    }
   }
 
   private async exitWorkflow() {

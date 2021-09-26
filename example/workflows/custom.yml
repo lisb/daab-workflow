@@ -1,0 +1,15 @@
+version: 1
+
+name: カスタムアクションの例
+
+steps:
+  - name: run custom action
+    id: step1
+    action: custom:sugoi-action
+    with:
+      magic: sugoi
+
+  - name: echo response
+    action: daab:message:text
+    with:
+      text: Response >> {{ step1.response }}

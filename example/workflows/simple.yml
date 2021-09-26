@@ -1,6 +1,6 @@
 version: 1
 
-name: 基本
+name: Echo text
 
 steps:
   - name: input text
@@ -13,4 +13,3 @@ steps:
     action: daab:message:text
     with:
       text: ECHO >> {{ step1.response }}
-    exit_flow: true

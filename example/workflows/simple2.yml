@@ -1,6 +1,6 @@
 version: 1
 
-name: 基本 2
+name: セレクトスタンプの例
 
 steps:
   - name: select

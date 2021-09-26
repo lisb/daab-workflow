@@ -1,15 +1,15 @@
 version: 1
 
-name: 基本 3
+name: 複数人で連携する例
 
 steps:
-  - name: input
+  - name: 入力
     id: step1
     action: daab:message:text
     with:
       text: 申請内容を送信ししてください。
 
-  - name: send application
+  - name: 相手へ送信
     id: step2
     action: daab:message:select
     with:
@@ -24,7 +24,7 @@ steps:
         - 却下
       to: kuroda+1
 
-  - name: report result
+  - name: 相手からの返答を自分に表示
     action: daab:message:text
     with:
       text: |

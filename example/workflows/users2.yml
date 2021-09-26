@@ -1,6 +1,6 @@
 version: 1
 
-name: 複数人で連携する例
+name: 連携 (2 人)
 
 steps:
   - name: 入力
@@ -13,7 +13,9 @@ steps:
     id: step2
     action: daab:message:select
     with:
-      text: |
+      question: |
+        申請内容を確認してください。
+
         申請者:
         {{ step1.responder.displayName }}
 

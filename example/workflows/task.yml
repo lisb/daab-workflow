@@ -1,0 +1,17 @@
+version: 1
+
+name: タスクスタンプの例
+
+steps:
+  - name: task
+    id: step1
+    action: daab:message:task
+    with:
+      title: 全社朝礼のスピーチを考える。
+
+  - name: notification
+    action: daab:message:text
+    with:
+      text: |
+        回答者: {{ step1.responder.displayName }}
+        回答: {{ step1.response }}

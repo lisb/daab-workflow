@@ -12,6 +12,8 @@ import {
   isDaabMessageTextArgs,
   DefaultActionWith,
   WorkflowStepDefaultActionWith,
+  isDaabMessageYesNoArgs,
+  isDaabMessageTaskArgs,
 } from './workflow';
 
 export interface Action {
@@ -61,15 +63,32 @@ export class MessageAction implements Action {
     return Promise.resolve();
   }
 
+  // ! FIXME: 実装が雑
   private createContent(action: DefaultActionType, args: DefaultActionWith): SendableContent {
     if (isDaabMessageSelectArgs(action, args)) {
       return {
-        question: args.text,
+        question: args.question,
         options: args.options,
       };
     }
     if (isDaabMessageTextArgs(action, args)) {
       return { text: args.text };
+    }
+    if (isDaabMessageYesNoArgs(action, args)) {
+      return {
+        question: args.question,
+      };
+    }
+    if (isDaabMessageYesNoArgs(action, args)) {
+      return {
+        question: args.question,
+      };
+    }
+    if (isDaabMessageTaskArgs(action, args)) {
+      return {
+        title: args.title,
+        closing_type: 0, // TODO
+      };
     }
     throw new Error(`unknown action: ${action}`);
   }

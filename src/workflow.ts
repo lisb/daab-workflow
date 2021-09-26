@@ -20,32 +20,68 @@ export interface WorkflowStep {
 export const DefaultAction = {
   Text: 'daab:message:text',
   Select: 'daab:message:select',
-  Yesno: 'daab:message:yesno',
-  Todo: 'daab:message:todo',
+  YesNo: 'daab:message:yesno',
+  Task: 'daab:message:task',
 } as const;
 export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction];
 
 export function isDefaultAction(s: string): s is DefaultActionType {
-  return !!s && Object.values(DefaultAction).some(a => a === s);
+  return !!s && Object.values(DefaultAction).some((a) => a === s);
 }
 
-export type DefaultActionWith = DaabMessageTextWith | DaabMessageSelectWith;
+export type DefaultActionWith =
+  | DaabMessageTextWith
+  | DaabMessageSelectWith
+  | DaabMessageYesNoWith
+  | DaabMessageTaskWith;
 
 interface DaabMessageTextWith {
   text: string;
   to: string | undefined;
 }
+
 interface DaabMessageSelectWith {
-  text: string;
+  question: string;
   options: string[];
   to: string | undefined;
 }
 
-export function isDaabMessageTextArgs(action: DefaultActionType, args: any): args is DaabMessageTextWith {
+interface DaabMessageYesNoWith {
+  question: string;
+  to: string | undefined;
+}
+
+interface DaabMessageTaskWith {
+  title: string;
+  to: string | undefined;
+}
+
+export function isDaabMessageTextArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageTextWith {
   return action == DefaultAction.Text;
 }
-export function isDaabMessageSelectArgs(action: DefaultActionType, args: any): args is DaabMessageSelectWith {
+
+export function isDaabMessageSelectArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageSelectWith {
   return action == DefaultAction.Select;
+}
+
+export function isDaabMessageYesNoArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageYesNoWith {
+  return action == DefaultAction.YesNo;
+}
+
+export function isDaabMessageTaskArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageTaskWith {
+  return action == DefaultAction.Task;
 }
 
 // NOTE: これは受け取る側で使う型宣言の方法

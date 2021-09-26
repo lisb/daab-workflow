@@ -1,0 +1,17 @@
+version: 1
+
+name: YesNo スタンプの例
+
+steps:
+  - name: yesno
+    id: step1
+    action: daab:message:yesno
+    with:
+      question: 4 ≡ 7 (mod. 3) は正しいか？
+
+  - name: notification
+    action: daab:message:text
+    with:
+      text: |
+        回答者: {{ step1.responder.displayName }}
+        回答: {{ step1.response }}

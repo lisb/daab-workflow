@@ -7,7 +7,7 @@ steps:
     id: step1
     action: daab:message:select
     with:
-      text: 今日の天気は？
+      question: 今日の天気は？
       options:
         - 晴れ
         - 雨

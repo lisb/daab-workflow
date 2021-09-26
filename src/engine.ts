@@ -335,7 +335,7 @@ export class WorkflowContext {
 
   async handleYesNo(res: ResponseWithJson<YesNoWithResponse>) {
     const current = this.currentStep;
-    if (current.action != DefaultAction.Yesno) {
+    if (current.action != DefaultAction.YesNo) {
       return;
     }
 
@@ -352,7 +352,7 @@ export class WorkflowContext {
 
   async handleTask(res: ResponseWithJson<TaskWithResponse>) {
     const current = this.currentStep;
-    if (current.action != DefaultAction.Todo) {
+    if (current.action != DefaultAction.Task) {
       return;
     }
 

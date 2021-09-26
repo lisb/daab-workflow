@@ -26,7 +26,7 @@ const _middlewares =
     } catch (err) {
       console.error(err);
     } finally {
-      console.debug('finally:', session);
+      // console.debug('finally:', session);
     }
   };
 
@@ -45,9 +45,9 @@ export function workflow(dirPath: string) {
 
   async function findCurrentWorkflowContext<M extends Message>(res: Response<M>) {
     const uc = await findUser(res);
-    console.debug('found uc:', uc);
+    // console.debug('found uc:', uc);
     const wc = await repository.findWorkflowContext(uc?.getCurrentWorkflowContextId());
-    console.debug('found wc:', wc);
+    // console.debug('found wc:', wc);
     return wc;
   }
 
@@ -75,11 +75,11 @@ export function workflow(dirPath: string) {
     robot.respond(
       /(.+)$/i,
       middlewares(async (res, session) => {
-        console.debug('text:', res.match[1]);
+        // console.debug('text:', res.match[1]);
         if (needToSkip(res)) {
           return;
         }
-        console.debug('text: begin');
+        // console.debug('text: begin');
         const command = commands.parse(res.match[1]);
         if (command) {
           command.run(res, session);
@@ -95,7 +95,7 @@ export function workflow(dirPath: string) {
     robot.respond(
       'select',
       middlewares(async (res, session) => {
-        console.debug('select');
+        // console.debug('select');
         const context = await findCurrentWorkflowContext(res);
         if (context && context.isActive) {
           await context.handleSelect(res);
@@ -111,7 +111,7 @@ export function workflow(dirPath: string) {
     robot.respond(
       'task',
       middlewares(async (res, session) => {
-        console.debug('task');
+        // console.debug('task');
         const context = await findCurrentWorkflowContext(res);
         if (context && context.isActive) {
           await context.handleTask(res);
@@ -122,7 +122,7 @@ export function workflow(dirPath: string) {
     robot.respond(
       'yesno',
       middlewares(async (res, session) => {
-        console.debug('yesno');
+        // console.debug('yesno');
         const context = await findCurrentWorkflowContext(res);
         if (context && context.isActive) {
           await context.handleYesNo(res);

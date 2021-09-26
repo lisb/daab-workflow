@@ -41,7 +41,7 @@ export class Commands {
             } else {
               session.selecting = true;
               res.send({
-                question: '申請を選択してください。',
+                question: 'ワークフローを選択してください。',
                 options: workflows.getNames(),
               });
             }

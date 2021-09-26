@@ -12,6 +12,7 @@ export interface Workflow {
 export interface WorkflowStep {
   name: string | undefined;
   id: string | undefined;
+  if: boolean | undefined;
   action: string;
   with: unknown;
   exitFlow: boolean;

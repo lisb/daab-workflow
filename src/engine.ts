@@ -243,6 +243,10 @@ export class WorkflowContext {
 
     if (next) {
       const [step, action] = this.evaluateWorkflowStep(next, res);
+      if (step.if != undefined && step.if === false) {
+        this.runNextAction(res);
+        return;
+      }
 
       const userId = this.getUserId(res, step);
       const uc = await this.findOrCreateUserContext(userId);

@@ -1,0 +1,23 @@
+version: 1
+
+name: if の例
+
+steps:
+  - name: yesno
+    id: step1
+    action: daab:message:yesno
+    with:
+      question: 4 ≡ 7 (mod. 3) は正しいか？
+
+  - name: good
+    if: {{ step1.response == true }}
+    action: daab:message:text
+    with:
+      text: 正解！
+    exit_flow: true
+
+  - name: wrong anser
+    if: {{ step1.response == false }}
+    action: daab:message:text
+    with:
+      text: 残念

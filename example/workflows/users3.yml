@@ -1,0 +1,60 @@
+version: 1
+
+name: 連携 (3 人)
+
+steps:
+  - name: 入力
+    id: step1
+    action: daab:message:text
+    with:
+      text: 申請内容を送信ししてください。
+
+  - name: 相手へ送信
+    id: step2
+    action: daab:message:select
+    with:
+      question: |
+        申請内容を確認してください。
+
+        申請者:
+        {{ step1.responder.displayName }}
+
+        申請内容:
+        {{ step1.response }}
+      options:
+        - 承認
+        - 却下
+      to: kuroda+1
+
+  - name: 相手からの返答を自分に送る
+    action: daab:message:text
+    with:
+      text: |
+        申請の結果が返ってきました。
+
+        申請内容:
+        {{ step1.response }}
+
+        判定者:
+        {{ step2.responder.displayName }}
+
+        結果:
+        {{ step2.response }}
+      to: '{{ step1.responder.displayName }}'
+    nowait: true
+
+  - name: 相手からの返答を別の人に送る
+    action: daab:message:text
+    with:
+      text: |
+        以下の申請が行われました。
+
+        申請内容:
+        {{ step1.response }}
+
+        判定者:
+        {{ step2.responder.displayName }}
+
+        結果:
+        {{ step2.response }}
+      to: kuroda+2

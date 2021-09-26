@@ -1,0 +1,16 @@
+version: 1
+
+name: 基本
+
+steps:
+  - name: input text
+    id: step1
+    action: daab:message:text
+    with:
+      text: 何か入力してください。
+
+  - name: echo text
+    action: daab:message:text
+    with:
+      text: ECHO >> {{ step1.response }}
+    exit_flow: true

@@ -11,10 +11,12 @@
     "daab"
   ],
   "scripts": {
+    "prebuild": "cd ../ && npm run build && cd - && npm install",
     "build": "rm -rf ./scripts/*.js; tsc",
     "start": "env DISABLE_NPM_INSTALL=true bin/hubot run"
   },
   "dependencies": {
+    "daab-workflow": "file:../",
     "forever": "^4.0.1",
     "lisb-hubot": "^3.3.2",
     "lisb-hubot-redis-brain": "^1.0.0"

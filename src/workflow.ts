@@ -3,64 +3,55 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import fs from 'fs';
-import path from 'path';
-import yaml from 'js-yaml';
-
 export interface Workflow {
-  version: string;
-  workflow: {
-    name: string;
-    steps: Step[];
-  };
+  version: `${number}.${number}.${number}`;
+  name: string;
+  steps: WorkflowStep[];
 }
 
-class Step {
-  constructor(
-    private readonly id: string,
-    private readonly action: Action,
-    public readonly exitFlow: boolean = false
-  ) {}
-
-  runAction(res: any) {}
+export interface WorkflowStep {
+  name: string | undefined;
+  id: string | undefined;
+  action: string;
+  with: unknown;
+  exitFlow: boolean;
 }
 
-interface Action {}
+export const DefaultAction = {
+  Text: 'daab:message:text',
+  Select: 'daab:message:select',
+  Yesno: 'daab:message:yesno',
+  Todo: 'daab:message:todo',
+} as const;
+export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction];
 
-class MessageAction implements Action {}
-
-export class WorkflowContext {}
-
-function validate(wf: any): wf is Workflow {
-  return typeof wf === 'object' && wf.version && wf.workflow && Array.isArray(wf.workflow.steps);
+export function isDefaultAction(s: string): s is DefaultActionType {
+  return !!s && Object.values(DefaultAction).some(a => a === s);
 }
 
-export class Workflows {
-  constructor(private readonly docs: Map<string, Workflow>) {}
+export type DefaultActionWith = DaabMessageTextWith | DaabMessageSelectWith;
 
-  static load(dirPath: string): Workflows {
-    const filenames = fs
-      .readdirSync(dirPath)
-      .filter((e) => ['.yml', '.yaml'].includes(path.extname(e)))
-      .map((e) => path.join(dirPath, e));
-
-    const docs = new Map<string, Workflow>();
-    filenames.forEach((fn) => {
-      const o = yaml.load(fs.readFileSync(fn, 'utf8'));
-      if (validate(o)) {
-        docs.set(o.workflow.name, o);
-      } else {
-        throw new Error(`invalid workflow: ${fn}`);
-      }
-    });
-    return new Workflows(docs);
-  }
-
-  get names(): string[] {
-    return Array.from(this.docs.keys()).sort();
-  }
-
-  beginWorkflow(name: string): WorkflowContext {
-    throw new Error('not implemented');
-  }
+interface DaabMessageTextWith {
+  text: string;
+  to: string | undefined;
 }
+interface DaabMessageSelectWith {
+  text: string;
+  options: string[];
+  to: string | undefined;
+}
+
+export function isDaabMessageTextArgs(action: DefaultActionType, args: any): args is DaabMessageTextWith {
+  return action == DefaultAction.Text;
+}
+export function isDaabMessageSelectArgs(action: DefaultActionType, args: any): args is DaabMessageSelectWith {
+  return action == DefaultAction.Select;
+}
+
+// NOTE: これは受け取る側で使う型宣言の方法
+export type WorkflowStepDefaultActionWith<A extends DefaultActionType> =
+  A extends typeof DefaultAction.Text
+    ? DaabMessageTextWith
+    : A extends typeof DefaultAction.Select
+    ? DaabMessageSelectWith
+    : never;

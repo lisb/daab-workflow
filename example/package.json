@@ -19,7 +19,7 @@
     "daab-workflow": "file:../",
     "forever": "^4.0.1",
     "lisb-hubot": "^3.3.2",
-    "lisb-hubot-redis-brain": "^1.0.0"
+    "lisb-hubot-redis-brain": "^1.0.1"
   },
   "devDependencies": {
     "typescript": "^4.3.5"

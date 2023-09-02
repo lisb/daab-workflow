@@ -224,7 +224,7 @@ export class WorkflowContext {
       return [wstep, new MessageAction(action, args, args.to, res)];
     }
     if (isCustomAction(action)) {
-      return [wstep, new CustomAction(getCustomActionName(action), wstep.with)];
+      return [wstep, new CustomAction(getCustomActionName(action), wstep.with, res)];
     }
     throw new Error('Action is not implemented.');
   }

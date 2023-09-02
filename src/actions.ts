@@ -97,16 +97,20 @@ export class MessageAction implements Action {
   }
 }
 
-type CustomActionFunction = (args: any) => Promise<ActionResponse | undefined>;
+type CustomActionFunction = (args: any, res?: Response<any>) => Promise<ActionResponse | undefined>;
 
 export class CustomAction implements Action {
   private readonly f: CustomActionFunction;
 
-  constructor(private readonly name: string, private readonly args: unknown) {
+  constructor(
+    private readonly name: string,
+    private readonly args: unknown,
+    readonly res: Response<any>
+  ) {
     this.f = require(name);
   }
 
   async execute(): Promise<ActionResponse | undefined> {
-    return this.f(this.args);
+    return this.f(this.args, this.res);
   }
 }

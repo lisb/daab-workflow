@@ -29,6 +29,9 @@ import {
   DefaultActionWith,
   isCustomAction,
   getCustomActionName,
+  WorkflowEvent,
+  WorkflowEventType,
+  WorkflowEventWith,
 } from './workflow';
 import { Repository } from './repository';
 
@@ -102,6 +105,16 @@ export class Workflows {
     }
     return undefined;
   }
+
+  createWorkflowContextByEvent(
+    type: WorkflowEventType,
+    e?: WorkflowEventWith
+  ): WorkflowContext | undefined {
+    const workflow = this.filterByEvent(type, e);
+    if (workflow.length) {
+      return WorkflowContext.create(workflow[0], this.repository);
+    }
+  }
 }
 
 // * NOTE: Hubot の Listener 処理が Promise に対応していないため，daab-session を使わずに別途設けることになった
@@ -174,6 +187,7 @@ export class WorkflowContext {
   private valid = true;
   private stepIndex = 0;
   private data: WorkflowStepData = {};
+  private readonly firstStep = { id: 'on' } as WorkflowStep;
   private readonly actors = new Set<string>();
 
   private constructor(
@@ -231,7 +245,14 @@ export class WorkflowContext {
     this.data = {};
   }
 
+  private resetByEvent(type: WorkflowEventType) {
+    this.stepIndex = -1;
+    this.data = {};
+    this.firstStep.action = `daab:message:${type.split('_')[0]}`;
+  }
+
   private get currentStep() {
+    if (this.stepIndex === -1) return this.firstStep;
     return this.workflow.steps[this.stepIndex];
   }
   private get isLastStep() {
@@ -336,6 +357,11 @@ export class WorkflowContext {
       this.runNextAction(res);
       return;
     }
+  }
+
+  async triggerWorkflow(type: WorkflowEventType) {
+    this.resetByEvent(type);
+    this.activate();
   }
 
   private async exitWorkflow() {

@@ -14,6 +14,7 @@ import {
 import { Repository } from './repository';
 import { UserContext, UserSession, Workflows } from './engine';
 import { Commands } from './commands';
+import { WorkflowEvent, WorkflowEventType } from './workflow';
 
 const _middlewares =
   (repository: Repository) =>
@@ -43,12 +44,22 @@ export function workflow(dirPath: string) {
     return repository.findUserContextByUserId(userId);
   }
 
-  async function findCurrentWorkflowContext<M extends Message>(res: Response<M>) {
+  async function findCurrentWorkflowContext<M extends Message>(
+    res: Response<M>,
+    type: WorkflowEventType
+  ) {
     const uc = await findUser(res);
     // console.debug('found uc:', uc);
     const wc = await repository.findWorkflowContext(uc?.getCurrentWorkflowContextId());
     // console.debug('found wc:', wc);
+    if (wc) {
     return wc;
+  }
+    const newContext = workflows.createWorkflowContextByEvent(type, res);
+    if (newContext) {
+      await newContext.triggerWorkflow(type);
+      return newContext;
+    }
   }
 
   async function startWorkflow(res: ResponseWithJson<SelectWithResponse>, workflows: Workflows) {
@@ -84,8 +95,8 @@ export function workflow(dirPath: string) {
         if (command) {
           command.run(res, session);
         } else {
-          const context = await findCurrentWorkflowContext(res);
-          if (context && context.isActive) {
+          const context = await findCurrentWorkflowContext(res, WorkflowEvent.Text);
+          if (context && context.isActive()) {
             await context.handleText(res);
           }
         }

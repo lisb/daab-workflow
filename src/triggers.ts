@@ -1,4 +1,8 @@
 import {
+  Response,
+  TextMessage,
+} from 'lisb-hubot';
+import {
   WorkflowEvent,
   WorkflowEventType,
   WorkflowEventWith,
@@ -30,6 +34,17 @@ export function isTriggerFired(
   }
   if (Object.keys(trigger).length == 0) {
     return true;
+  }
+  switch (type) {
+    case 'text': {
+      const res = e as Response<TextMessage>;
+      if (typeof trigger.match === 'string' && res.message.text.match(trigger.match)) {
+        return true;
+      }
+      break;
+    }
+    default:
+      break;
   }
   return false;
 }

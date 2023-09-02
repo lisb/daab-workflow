@@ -23,6 +23,8 @@ import {
   NoteCreated,
   NoteUpdated,
   NoteDeleted,
+  JoinMessage,
+  LeaveMessage,
 } from './daab';
 import {
   DefaultAction,
@@ -497,6 +499,36 @@ export class WorkflowContext {
         responder: res.message.user,
         ...res.json,
         response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleJoin(res: Response<JoinMessage>) {
+    const current = this.currentStep;
+    if (current.action != 'daab:message:join') {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleLeave(res: Response<LeaveMessage>) {
+    const current = this.currentStep;
+    if (current.action != 'daab:message:leave') {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
       };
     }
 

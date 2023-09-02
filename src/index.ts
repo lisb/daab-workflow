@@ -173,6 +173,26 @@ export function workflow(dirPath: string) {
         }
       })
     );
+
+    robot.join(
+      middlewares(async (res, session) => {
+        // console.debug('join');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Join);
+        if (context && context.isActive()) {
+          await context.handleJoin(res);
+        }
+      })
+    );
+
+    robot.leave(
+      middlewares(async (res, session) => {
+        // console.debug('leave');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Leave);
+        if (context && context.isActive()) {
+          await context.handleLeave(res);
+        }
+      })
+    );
   };
 
   return handlers;

@@ -26,6 +26,8 @@ export const WorkflowEvent = {
   Select: 'select',
   YesNo: 'yesno',
   Task: 'task',
+  Join: 'join',
+  Leave: 'leave',
   NoteCreated: 'note_created',
   NoteUpdated: 'note_updated',
   NoteDeleted: 'note_deleted',

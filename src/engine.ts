@@ -9,7 +9,7 @@ import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
 import { Action, CustomAction, MessageAction } from './actions';
-import { parseTrigger } from './triggers';
+import { parseTrigger, isTriggerFired } from './triggers';
 import {
   DirectUser,
   DirectTalk,
@@ -79,6 +79,16 @@ export class Workflows {
 
   getNames(): string[] {
     return Array.from(this.docs.keys()).sort();
+  }
+
+  getSelectableNames(): string[] {
+    return this.filterByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
+  }
+
+  filterByEvent(type: WorkflowEventType, e?: WorkflowEventWith): Workflow[] {
+    return this.getNames()
+      .map((name) => this.findByName(name)!)
+      .filter((workflow) => isTriggerFired(type, workflow.on[type], e));
   }
 
   findByName(name: string): Workflow | undefined {

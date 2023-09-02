@@ -7,6 +7,7 @@ export interface Workflow {
   version: `${number}.${number}.${number}`;
   name: string;
   steps: WorkflowStep[];
+  on: WorkflowTriggerMap;
 }
 
 export interface WorkflowStep {
@@ -18,6 +19,21 @@ export interface WorkflowStep {
   nowait: boolean | undefined;
   exitFlow: boolean | undefined;
 }
+
+export const WorkflowEvent = {
+  WorkflowDispatch: 'workflow_dispatch',
+  Text: 'text',
+  Select: 'select',
+  YesNo: 'yesno',
+  Task: 'task',
+} as const;
+export type WorkflowEventType = (typeof WorkflowEvent)[keyof typeof WorkflowEvent];
+
+export type WorkflowTrigger = Record<string, any>;
+
+export type WorkflowTriggerMap = Partial<{ [e in WorkflowEventType]: WorkflowTrigger }>;
+
+export type WorkflowEventWith = Record<string, any>;
 
 export const DefaultAction = {
   Text: 'daab:message:text',

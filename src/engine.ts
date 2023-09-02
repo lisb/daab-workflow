@@ -20,6 +20,9 @@ import {
   TaskWithResponse,
   TextMessage,
   YesNoWithResponse,
+  NoteCreated,
+  NoteUpdated,
+  NoteDeleted,
 } from './daab';
 import {
   DefaultAction,
@@ -443,6 +446,57 @@ export class WorkflowContext {
         responder: res.message.user,
         ...res.json,
         response: res.json.done!, // NOTE: 必ずあるから ? を取り除く
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteCreated(res: ResponseWithJson<NoteCreated>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteUpdated(res: ResponseWithJson<NoteUpdated>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteDeleted(res: ResponseWithJson<NoteDeleted>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
       };
     }
 

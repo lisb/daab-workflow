@@ -53,8 +53,8 @@ export function workflow(dirPath: string) {
     const wc = await repository.findWorkflowContext(uc?.getCurrentWorkflowContextId());
     // console.debug('found wc:', wc);
     if (wc) {
-    return wc;
-  }
+      return wc;
+    }
     const newContext = workflows.createWorkflowContextByEvent(type, res);
     if (newContext) {
       await newContext.triggerWorkflow(type);
@@ -107,8 +107,8 @@ export function workflow(dirPath: string) {
       'select',
       middlewares(async (res, session) => {
         // console.debug('select');
-        const context = await findCurrentWorkflowContext(res);
-        if (context && context.isActive) {
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Select);
+        if (context && context.isActive()) {
           await context.handleSelect(res);
         } else {
           if (session.selecting) {
@@ -123,8 +123,8 @@ export function workflow(dirPath: string) {
       'task',
       middlewares(async (res, session) => {
         // console.debug('task');
-        const context = await findCurrentWorkflowContext(res);
-        if (context && context.isActive) {
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Task);
+        if (context && context.isActive()) {
           await context.handleTask(res);
         }
       })
@@ -134,9 +134,42 @@ export function workflow(dirPath: string) {
       'yesno',
       middlewares(async (res, session) => {
         // console.debug('yesno');
-        const context = await findCurrentWorkflowContext(res);
-        if (context && context.isActive) {
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.YesNo);
+        if (context && context.isActive()) {
           await context.handleYesNo(res);
+        }
+      })
+    );
+
+    robot.respond(
+      'note_created',
+      middlewares(async (res, session) => {
+        // console.debug('note_created');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteCreated);
+        if (context && context.isActive()) {
+          await context.handleNoteCreated(res);
+        }
+      })
+    );
+
+    robot.respond(
+      'note_updated',
+      middlewares(async (res, session) => {
+        // console.debug('note_updated');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteUpdated);
+        if (context && context.isActive()) {
+          await context.handleNoteUpdated(res);
+        }
+      })
+    );
+
+    robot.respond(
+      'note_deleted',
+      middlewares(async (res, session) => {
+        // console.debug('note_deleted');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteDeleted);
+        if (context && context.isActive()) {
+          await context.handleNoteDeleted(res);
         }
       })
     );

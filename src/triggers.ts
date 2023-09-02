@@ -1,5 +1,9 @@
 import {
+  NoteCreated,
+  NoteDeleted,
+  NoteUpdated,
   Response,
+  ResponseWithJson,
   TextMessage,
 } from 'lisb-hubot';
 import {
@@ -39,6 +43,22 @@ export function isTriggerFired(
     case 'text': {
       const res = e as Response<TextMessage>;
       if (typeof trigger.match === 'string' && res.message.text.match(trigger.match)) {
+        return true;
+      }
+      break;
+    }
+    case 'note_created':
+    case 'note_updated':
+    case 'note_deleted': {
+      const res = e as ResponseWithJson<NoteCreated>;
+      const note = res.json;
+      if (typeof trigger.title === 'string' && note.title.match(trigger.title)) {
+        return true;
+      }
+      if (
+        typeof trigger.has_attachments === 'boolean' &&
+        trigger.has_attachments == note.has_attachments
+      ) {
         return true;
       }
       break;

@@ -26,6 +26,9 @@ export const WorkflowEvent = {
   Select: 'select',
   YesNo: 'yesno',
   Task: 'task',
+  NoteCreated: 'note_created',
+  NoteUpdated: 'note_updated',
+  NoteDeleted: 'note_deleted',
 } as const;
 export type WorkflowEventType = (typeof WorkflowEvent)[keyof typeof WorkflowEvent];
 
@@ -40,6 +43,7 @@ export const DefaultAction = {
   Select: 'daab:message:select',
   YesNo: 'daab:message:yesno',
   Task: 'daab:message:task',
+  Note: 'daab:message:note',
 } as const;
 export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction];
 

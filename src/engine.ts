@@ -9,6 +9,7 @@ import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
 import { Action, CustomAction, MessageAction } from './actions';
+import { parseTrigger } from './triggers';
 import {
   DirectUser,
   DirectTalk,
@@ -47,7 +48,7 @@ export class Workflows {
 
     const docs = new Map<string, Workflow>();
     filenames.forEach((fn) => {
-      const w = yaml.load(fs.readFileSync(fn, 'utf8'));
+      const w = this.parse(yaml.load(fs.readFileSync(fn, 'utf8')));
       if (this.validate(w)) {
         docs.set(w.name, w);
       } else {
@@ -57,8 +58,23 @@ export class Workflows {
     return new Workflows(docs, repository);
   }
 
-  static validate(obj: any): obj is Workflow {
-    return typeof obj === 'object' && obj.version && obj.name && Array.isArray(obj.steps);
+  static parse(w: any): Workflow {
+    if (w) {
+      w.on = parseTrigger(w.on);
+    }
+    return w;
+  }
+
+  static validate(obj: Workflow): boolean {
+    return (
+      typeof obj === 'object' &&
+      typeof obj.version === 'number' &&
+      !!obj.version &&
+      typeof obj.name === 'string' &&
+      !!obj.name &&
+      Array.isArray(obj.steps) &&
+      typeof obj.on === 'object'
+    );
   }
 
   getNames(): string[] {

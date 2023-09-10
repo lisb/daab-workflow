@@ -283,7 +283,14 @@ export class WorkflowContext {
 
   private getUserId(res: Response<any>, step: WorkflowStep) {
     const args = step.with as { to?: string }; // ! FIXME
-    return this.findUserId(res, args.to)?.id ?? res.message.user.id;
+    // FIXME
+    const obj = (res.robot as any).direct.api.dataStore.me.id;
+    const botId = `_${obj.high}_${obj.low}`;
+    let userId = res.message.user.id;
+    if (userId == botId) {
+      userId = res.message.roomUsers.find((user: any) => user.id !== botId)?.id;
+    }
+    return this.findUserId(res, args.to)?.id ?? userId;
   }
 
   private async findOrCreateUserContext(userId: string) {

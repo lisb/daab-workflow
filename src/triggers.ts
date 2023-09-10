@@ -18,6 +18,13 @@ export function parseTrigger(on: any): WorkflowTriggerMap {
   if (Array.isArray(on)) {
     return on.reduce((obj, o) => ({ ...obj, ...parseTrigger(o) }), {});
   } else if (typeof on === 'object') {
+    Object.keys(on).forEach((k) => {
+      if (on[k] === null || on[k] === true) {
+        on[k] = {}; // fix to {}
+      } else if (typeof on[k] !== 'object') {
+        delete on[k]; // invalid
+      }
+    });
     return on;
   } else if (typeof on === 'string') {
     return { [on]: {} };

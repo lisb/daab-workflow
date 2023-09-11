@@ -394,6 +394,10 @@ export class WorkflowContext {
     await this.repository.destroy(this);
   }
 
+  async cancelWorkflow() {
+    return this.exitWorkflow();
+  }
+
   async handleSelect(res: ResponseWithJson<SelectWithResponse>) {
     const current = this.currentStep;
     if (current.action != DefaultAction.Select) {

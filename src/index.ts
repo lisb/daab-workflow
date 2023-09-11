@@ -191,6 +191,9 @@ export function workflow(dirPath: string) {
         if (context && context.isActive()) {
           await context.handleLeave(res);
         }
+        if (context) {
+          await context.cancelWorkflow();
+        }
       })
     );
   };

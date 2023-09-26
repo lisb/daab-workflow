@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import fs from 'fs';
-import mustache from 'mustache';
+import handlebars from 'handlebars';
 import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
@@ -30,6 +30,8 @@ import {
   getCustomActionName,
 } from './workflow';
 import { Repository } from './repository';
+
+require('handlebars-helpers')();
 
 type UserId = string;
 
@@ -216,15 +218,22 @@ export class WorkflowContext {
     return this.workflow.steps[++this.stepIndex];
   }
 
+  private evaluateActionWith(actionWith: unknown): DefaultActionWith {
+    if (typeof actionWith === 'string') {
+      actionWith = yaml.load(actionWith);
+    }
+    return actionWith as DefaultActionWith;
+  }
+
   private evaluateWorkflowStep(step: WorkflowStep, res: Response<any>): [WorkflowStep, Action] {
-    const wstep = yaml.load(mustache.render(yaml.dump(step), this.data)) as WorkflowStep;
+    const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
     const action = wstep.action;
+    const args = this.evaluateActionWith(wstep.with);
     if (isDefaultAction(action)) {
-      const args = wstep.with as DefaultActionWith;
       return [wstep, new MessageAction(action, args, args.to, res)];
     }
     if (isCustomAction(action)) {
-      return [wstep, new CustomAction(getCustomActionName(action), wstep.with, res)];
+      return [wstep, new CustomAction(getCustomActionName(action), args, res)];
     }
     throw new Error('Action is not implemented.');
   }

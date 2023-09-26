@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import fs from 'fs';
-import mustache from 'mustache';
+import handlebars from 'handlebars';
 import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
@@ -30,6 +30,8 @@ import {
   getCustomActionName,
 } from './workflow';
 import { Repository } from './repository';
+
+require('handlebars-helpers')();
 
 type UserId = string;
 
@@ -217,7 +219,7 @@ export class WorkflowContext {
   }
 
   private evaluateWorkflowStep(step: WorkflowStep, res: Response<any>): [WorkflowStep, Action] {
-    const wstep = yaml.load(mustache.render(yaml.dump(step), this.data)) as WorkflowStep;
+    const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
     const action = wstep.action;
     if (isDefaultAction(action)) {
       const args = wstep.with as DefaultActionWith;

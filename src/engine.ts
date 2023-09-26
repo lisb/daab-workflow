@@ -218,15 +218,22 @@ export class WorkflowContext {
     return this.workflow.steps[++this.stepIndex];
   }
 
+  private evaluateActionWith(actionWith: unknown): DefaultActionWith {
+    if (typeof actionWith === 'string') {
+      actionWith = yaml.load(actionWith);
+    }
+    return actionWith as DefaultActionWith;
+  }
+
   private evaluateWorkflowStep(step: WorkflowStep, res: Response<any>): [WorkflowStep, Action] {
     const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
     const action = wstep.action;
+    const args = this.evaluateActionWith(wstep.with);
     if (isDefaultAction(action)) {
-      const args = wstep.with as DefaultActionWith;
       return [wstep, new MessageAction(action, args, args.to, res)];
     }
     if (isCustomAction(action)) {
-      return [wstep, new CustomAction(getCustomActionName(action), wstep.with)];
+      return [wstep, new CustomAction(getCustomActionName(action), args)];
     }
     throw new Error('Action is not implemented.');
   }

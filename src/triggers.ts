@@ -4,6 +4,7 @@ import {
   NoteUpdated,
   Response,
   ResponseWithJson,
+  SelectWithResponse,
   TextMessage,
 } from 'lisb-hubot';
 import {
@@ -50,6 +51,26 @@ export function isTriggerFired(
     case 'text': {
       const res = e as Response<TextMessage>;
       if (typeof trigger.match === 'string' && res.message.text.match(trigger.match)) {
+        return true;
+      }
+      break;
+    }
+    case 'select': {
+      const res = e as ResponseWithJson<SelectWithResponse>;
+      if (
+        typeof trigger.question?.match === 'string' &&
+        res.json.question.match(trigger.question.match)
+      ) {
+        return true;
+      }
+      if (typeof trigger.response === 'number' && res.json.response === trigger.response) {
+        return true;
+      }
+      if (
+        typeof trigger.response?.match === 'string' &&
+        typeof res.json.response === 'number' &&
+        res.json.options[res.json.response].match(trigger.response.match)
+      ) {
         return true;
       }
       break;

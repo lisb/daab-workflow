@@ -8,7 +8,7 @@ import handlebars from 'handlebars';
 import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
-import { Action, CustomAction, MessageAction } from './actions';
+import { Action, CustomAction, MessageAction, NoopAction } from './actions';
 import { parseTrigger, isTriggerFired } from './triggers';
 import type { Robot, TextMessage, LeaveMessage } from 'lisb-hubot';
 import type {
@@ -271,18 +271,32 @@ export class WorkflowContext {
     if (typeof actionWith === 'string') {
       actionWith = yaml.load(actionWith);
     }
+    if (typeof actionWith !== 'object') {
+      actionWith = {};
+    }
     return actionWith as DefaultActionWith;
   }
 
-  private evaluateWorkflowStep(step: WorkflowStep, res: Response<any>): [WorkflowStep, Action] {
+  private evaluateWorkflowStep(step: WorkflowStep): WorkflowStep {
     const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
+    if (typeof wstep.if === 'string') {
+      wstep.if = (wstep.if as string).toLowerCase() === 'true';
+    }
+    wstep.with = this.evaluateActionWith(wstep.with);
+    return wstep;
+  }
+
+  private evaluateWorkflowAction(wstep: WorkflowStep, res: Response<any>): Action {
     const action = wstep.action;
-    const args = this.evaluateActionWith(wstep.with);
+    const args = wstep.with as DefaultActionWith;
     if (isDefaultAction(action)) {
-      return [wstep, new MessageAction(action, args, args.to, res)];
+      return new MessageAction(action, args, args.to, res);
     }
     if (isCustomAction(action)) {
-      return [wstep, new CustomAction(getCustomActionName(action), args, res)];
+      return new CustomAction(getCustomActionName(action), args, res);
+    }
+    if (!action) {
+      return new NoopAction(action, args);
     }
     throw new Error('Action is not implemented.');
   }
@@ -312,7 +326,7 @@ export class WorkflowContext {
     console.info('next:', next);
 
     if (next) {
-      const [step, action] = this.evaluateWorkflowStep(next, res);
+      const step = this.evaluateWorkflowStep(next);
       if (step.if != undefined && step.if === false) {
         this.runNextAction(res);
         return;
@@ -324,6 +338,7 @@ export class WorkflowContext {
       await this.repository.saveUserContext(uc);
       await this.repository.saveWorkflowContext(this);
 
+      const action = this.evaluateWorkflowAction(step, res);
       const ar = await action.execute();
       if (ar && step.id) {
         this.data[step.id] = {
@@ -357,7 +372,7 @@ export class WorkflowContext {
     this.reset();
     this.activate();
 
-    const [step, action] = this.evaluateWorkflowStep(this.currentStep, res);
+    const step = this.evaluateWorkflowStep(this.currentStep);
 
     const userId = this.getUserId(res, step);
     const uc = await this.findOrCreateUserContext(userId);
@@ -365,6 +380,7 @@ export class WorkflowContext {
     await this.repository.saveUserContext(uc);
     await this.repository.saveWorkflowContext(this);
 
+    const action = this.evaluateWorkflowAction(step, res);
     const ar = await action.execute();
     if (ar && step.id) {
       this.data[step.id] = {

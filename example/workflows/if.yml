@@ -10,14 +10,14 @@ steps:
       question: 4 ≡ 7 (mod. 3) は正しいか？
 
   - name: good
-    if: {{ step1.response == true }}
+    if: '{{ step1.response }}'
     action: daab:message:text
     with:
       text: 正解！
-    exit_flow: true
+    exitFlow: true
 
   - name: wrong anser
-    if: {{ step1.response == false }}
+    if: '{{ not step1.response }}'
     action: daab:message:text
     with:
       text: 残念

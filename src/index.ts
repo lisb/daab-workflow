@@ -3,14 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import {
-  Message,
-  Response,
-  ResponseWithJson,
-  Robot,
-  SelectWithResponse,
-  TextMessage,
-} from './daab';
+import type { Message, Robot, TextMessage } from 'lisb-hubot';
+import type { Response, ResponseWithJson, SelectWithResponse } from 'hubot-direct';
 import { Repository } from './repository';
 import { UserContext, UserSession, Workflows } from './engine';
 import { Commands } from './commands';
@@ -72,9 +66,9 @@ export function workflow(dirPath: string) {
     }
   }
 
-  function needToSkip(res: Response<TextMessage>) {
+  function needToSkip(text: string) {
     try {
-      const data = JSON.parse(res.match[1]);
+      const data = JSON.parse(text);
       const names = Object.getOwnPropertyNames(data);
       return names.some((n) => ['in_reply_to', 'question', 'title', 'stamp_index'].includes(n));
     } catch (_) {
@@ -83,15 +77,16 @@ export function workflow(dirPath: string) {
   }
 
   const handlers = (robot: Robot) => {
-    robot.respond(
+    robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {
-        // console.debug('text:', res.match[1]);
-        if (needToSkip(res)) {
+        const text = res.match[1].replace(/^Hubot /i, '')
+        // console.debug('text:', text);
+        if (needToSkip(text)) {
           return;
         }
         // console.debug('text: begin');
-        const command = commands.parse(res.match[1]);
+        const command = commands.parse(text);
         if (command) {
           command.run(res, session);
         } else {
@@ -103,7 +98,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'select',
       middlewares(async (res, session) => {
         // console.debug('select');
@@ -119,7 +114,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'task',
       middlewares(async (res, session) => {
         // console.debug('task');
@@ -130,7 +125,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'yesno',
       middlewares(async (res, session) => {
         // console.debug('yesno');
@@ -141,7 +136,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_created',
       middlewares(async (res, session) => {
         // console.debug('note_created');
@@ -152,7 +147,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_updated',
       middlewares(async (res, session) => {
         // console.debug('note_updated');
@@ -163,7 +158,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_deleted',
       middlewares(async (res, session) => {
         // console.debug('note_deleted');

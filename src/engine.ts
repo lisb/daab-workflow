@@ -10,22 +10,19 @@ import * as uuid from 'uuid';
 import yaml from 'js-yaml';
 import { Action, CustomAction, MessageAction } from './actions';
 import { parseTrigger, isTriggerFired } from './triggers';
-import {
-  DirectUser,
-  DirectTalk,
-  DirectTalkType,
+import type { Robot, TextMessage, LeaveMessage } from 'lisb-hubot';
+import type {
+  Direct,
   Response,
   ResponseWithJson,
   SelectWithResponse,
   TaskWithResponse,
-  TextMessage,
   YesNoWithResponse,
   NoteCreated,
   NoteUpdated,
   NoteDeleted,
   JoinMessage,
-  LeaveMessage,
-} from './daab';
+} from 'hubot-direct';
 import {
   DefaultAction,
   isDefaultAction,
@@ -293,9 +290,9 @@ export class WorkflowContext {
   private getUserId(res: Response<any>, step: WorkflowStep) {
     const args = step.with as { to?: string }; // ! FIXME
     // FIXME
-    const obj = (res.robot as any).direct.api.dataStore.me.id;
+    const obj = (res as any).robot.direct.api.dataStore.me.id;
     const botId = `_${obj.high}_${obj.low}`;
-    let userId = res.message.user.id;
+    let userId: string = res.message.user.id;
     if (userId == botId) {
       userId = res.message.roomUsers.find((user: any) => user.id !== botId)?.id;
     }
@@ -351,7 +348,8 @@ export class WorkflowContext {
     if (!to) {
       return undefined;
     }
-    return Object.values(res.robot.brain.users()).filter((u) => u.displayName === to)[0];
+    const robot = (res as any).robot as Robot<Direct>;
+    return Object.values(robot.brain.users()).filter((u) => u.displayName === to)[0];
   }
 
   // NOTE: このメソッドは respond('select', ...) からのみ呼び出される
@@ -433,7 +431,7 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        response: res.match[1],
+        response: res.match[1].replace(/^Hubot /i, ''),
       };
     }
 

@@ -349,13 +349,13 @@ export class WorkflowContext {
           response: ar.data,
         };
       }
+      if (step.exitFlow || this.isLastStep) {
+        await this.exitWorkflow();
+        return;
+      }
       if (step.nowait) {
         this.runNextAction(res);
         return;
-      }
-
-      if (step.exitFlow || this.isLastStep) {
-        await this.exitWorkflow();
       }
     } else {
       await this.exitWorkflow();

@@ -42,7 +42,7 @@ export class Commands {
               session.selecting = true;
               res.send({
                 question: 'ワークフローを選択してください。',
-                options: workflows.getNames(),
+                options: workflows.getSelectableNames(),
               });
             }
           }

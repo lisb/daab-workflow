@@ -9,6 +9,7 @@ import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
 import { Action, CustomAction, MessageAction } from './actions';
+import { parseTrigger, isTriggerFired } from './triggers';
 import {
   DirectUser,
   DirectTalk,
@@ -19,6 +20,11 @@ import {
   TaskWithResponse,
   TextMessage,
   YesNoWithResponse,
+  NoteCreated,
+  NoteUpdated,
+  NoteDeleted,
+  JoinMessage,
+  LeaveMessage,
 } from './daab';
 import {
   DefaultAction,
@@ -28,6 +34,9 @@ import {
   DefaultActionWith,
   isCustomAction,
   getCustomActionName,
+  WorkflowEvent,
+  WorkflowEventType,
+  WorkflowEventWith,
 } from './workflow';
 import { Repository } from './repository';
 
@@ -49,7 +58,7 @@ export class Workflows {
 
     const docs = new Map<string, Workflow>();
     filenames.forEach((fn) => {
-      const w = yaml.load(fs.readFileSync(fn, 'utf8'));
+      const w = this.parse(yaml.load(fs.readFileSync(fn, 'utf8')));
       if (this.validate(w)) {
         docs.set(w.name, w);
       } else {
@@ -59,12 +68,37 @@ export class Workflows {
     return new Workflows(docs, repository);
   }
 
-  static validate(obj: any): obj is Workflow {
-    return typeof obj === 'object' && obj.version && obj.name && Array.isArray(obj.steps);
+  static parse(w: any): Workflow {
+    if (w) {
+      w.on = parseTrigger(w.on);
+    }
+    return w;
+  }
+
+  static validate(obj: Workflow): boolean {
+    return (
+      typeof obj === 'object' &&
+      typeof obj.version === 'number' &&
+      !!obj.version &&
+      typeof obj.name === 'string' &&
+      !!obj.name &&
+      Array.isArray(obj.steps) &&
+      typeof obj.on === 'object'
+    );
   }
 
   getNames(): string[] {
     return Array.from(this.docs.keys()).sort();
+  }
+
+  getSelectableNames(): string[] {
+    return this.filterByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
+  }
+
+  filterByEvent(type: WorkflowEventType, e?: WorkflowEventWith): Workflow[] {
+    return this.getNames()
+      .map((name) => this.findByName(name)!)
+      .filter((workflow) => isTriggerFired(type, workflow.on[type], e));
   }
 
   findByName(name: string): Workflow | undefined {
@@ -77,6 +111,16 @@ export class Workflows {
       return WorkflowContext.create(workflow, this.repository);
     }
     return undefined;
+  }
+
+  createWorkflowContextByEvent(
+    type: WorkflowEventType,
+    e?: WorkflowEventWith
+  ): WorkflowContext | undefined {
+    const workflow = this.filterByEvent(type, e);
+    if (workflow.length) {
+      return WorkflowContext.create(workflow[0], this.repository);
+    }
   }
 }
 
@@ -150,6 +194,7 @@ export class WorkflowContext {
   private valid = true;
   private stepIndex = 0;
   private data: WorkflowStepData = {};
+  private readonly firstStep = { id: 'on' } as WorkflowStep;
   private readonly actors = new Set<string>();
 
   private constructor(
@@ -207,7 +252,14 @@ export class WorkflowContext {
     this.data = {};
   }
 
+  private resetByEvent(type: WorkflowEventType) {
+    this.stepIndex = -1;
+    this.data = {};
+    this.firstStep.action = `daab:message:${type.split('_')[0]}`;
+  }
+
   private get currentStep() {
+    if (this.stepIndex === -1) return this.firstStep;
     return this.workflow.steps[this.stepIndex];
   }
   private get isLastStep() {
@@ -240,7 +292,14 @@ export class WorkflowContext {
 
   private getUserId(res: Response<any>, step: WorkflowStep) {
     const args = step.with as { to?: string }; // ! FIXME
-    return this.findUserId(res, args.to)?.id ?? res.message.user.id;
+    // FIXME
+    const obj = (res.robot as any).direct.api.dataStore.me.id;
+    const botId = `_${obj.high}_${obj.low}`;
+    let userId = res.message.user.id;
+    if (userId == botId) {
+      userId = res.message.roomUsers.find((user: any) => user.id !== botId)?.id;
+    }
+    return this.findUserId(res, args.to)?.id ?? userId;
   }
 
   private async findOrCreateUserContext(userId: string) {
@@ -321,6 +380,11 @@ export class WorkflowContext {
     }
   }
 
+  async triggerWorkflow(type: WorkflowEventType) {
+    this.resetByEvent(type);
+    this.activate();
+  }
+
   private async exitWorkflow() {
     this.reset();
     this.deactivate();
@@ -337,6 +401,10 @@ export class WorkflowContext {
 
     await Promise.all(effs);
     await this.repository.destroy(this);
+  }
+
+  async cancelWorkflow() {
+    return this.exitWorkflow();
   }
 
   async handleSelect(res: ResponseWithJson<SelectWithResponse>) {
@@ -400,6 +468,87 @@ export class WorkflowContext {
         responder: res.message.user,
         ...res.json,
         response: res.json.done!, // NOTE: 必ずあるから ? を取り除く
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteCreated(res: ResponseWithJson<NoteCreated>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteUpdated(res: ResponseWithJson<NoteUpdated>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleNoteDeleted(res: ResponseWithJson<NoteDeleted>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Note) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        ...res.json,
+        response: { note: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleJoin(res: Response<JoinMessage>) {
+    const current = this.currentStep;
+    if (current.action != 'daab:message:join') {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleLeave(res: Response<LeaveMessage>) {
+    const current = this.currentStep;
+    if (current.action != 'daab:message:leave') {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
       };
     }
 

@@ -1,0 +1,15 @@
+version: 1
+
+name: Join test
+
+on:
+  - workflow_dispatch
+  - join
+  - text:
+      match: hello
+
+steps:
+  - name: send text
+    action: daab:message:text
+    with:
+      text: はじめまして

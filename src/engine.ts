@@ -279,6 +279,9 @@ export class WorkflowContext {
 
   private evaluateWorkflowStep(step: WorkflowStep): WorkflowStep {
     const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
+    if (wstep.nowait === undefined) {
+      wstep.nowait = this.workflow.defaults?.nowait;
+    }
     if (typeof wstep.if === 'string') {
       wstep.if = (wstep.if as string).toLowerCase() === 'true';
     }

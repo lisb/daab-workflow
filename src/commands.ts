@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Response } from './daab';
+import type { Response } from 'hubot-direct';
 import { UserSession, Workflows } from './engine';
 
 const commands = ['help', 'list', 'status', 'abort'] as const;

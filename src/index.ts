@@ -3,14 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import {
-  Message,
-  Response,
-  ResponseWithJson,
-  Robot,
-  SelectWithResponse,
-  TextMessage,
-} from './daab';
+import type { Message, Robot, TextMessage } from 'lisb-hubot';
+import type { Response, ResponseWithJson, SelectWithResponse } from 'hubot-direct';
 import { Repository } from './repository';
 import { UserContext, UserSession, Workflows } from './engine';
 import { Commands } from './commands';

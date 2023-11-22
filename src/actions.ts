@@ -3,7 +3,9 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { DirectTalk, DirectTalkType, DirectUser, Response, SendableContent } from './daab';
+import type { Robot } from 'lisb-hubot';
+import type { Direct, Response, SendableContent } from 'hubot-direct';
+import type { Talk, User } from 'hubot-direct/types/direct-js';
 import { WorkflowContext } from './engine';
 import {
   DefaultAction,
@@ -25,17 +27,21 @@ export interface Action {
 }
 
 export class MessageAction implements Action {
+  robot: Robot<Direct>;
+
   constructor(
     readonly action: DefaultActionType,
     readonly args: DefaultActionWith,
     readonly to: string | undefined,
     readonly res: Response<any>
-  ) {}
+  ) {
+    this.robot = (this.res as any).robot;
+  }
 
   private getTargetTalk() {
-    const talks = this.res.robot.brain.rooms();
-    const isPairTalk = (talk: DirectTalk) => talk.type === 1; // DirectTalkType.Pair;
-    const areYouTarget = (user: DirectUser) => user.displayName === this.to;
+    const talks = this.robot.brain.rooms();
+    const isPairTalk = (talk: Talk) => talk.type === 1; // DirectTalkType.Pair;
+    const areYouTarget = (user: User) => user.displayName === this.to;
 
     const talk = Object.values(talks)
       .filter(isPairTalk)
@@ -47,7 +53,7 @@ export class MessageAction implements Action {
     return talk;
   }
 
-  private getTargetUser(talk: DirectTalk) {
+  private getTargetUser(talk: Talk) {
     const found = talk.users.find((u) => u.displayName === this.to);
     if (!found) {
       throw new Error(`destination talk not found: ${this.to}`);
@@ -59,7 +65,7 @@ export class MessageAction implements Action {
     const content = this.createContent(this.action, this.args);
     if (this.to) {
       const talk = this.getTargetTalk();
-      this.res.robot.send({ room: talk.id }, content);
+      this.robot.send({ room: talk.id }, content);
     } else {
       this.res.send(content);
     }

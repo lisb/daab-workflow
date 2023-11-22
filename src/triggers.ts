@@ -1,12 +1,15 @@
-import {
+
+import type {
+  TextMessage,
+} from 'lisb-hubot';
+import type {
   NoteCreated,
   NoteDeleted,
   NoteUpdated,
   Response,
   ResponseWithJson,
   SelectWithResponse,
-  TextMessage,
-} from 'lisb-hubot';
+} from 'hubot-direct';
 import {
   WorkflowEvent,
   WorkflowEventType,

@@ -77,7 +77,7 @@ export function workflow(dirPath: string) {
   }
 
   const handlers = (robot: Robot) => {
-    robot.respond(
+    robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {
         // console.debug('text:', res.match[1]);
@@ -97,7 +97,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'select',
       middlewares(async (res, session) => {
         // console.debug('select');
@@ -113,7 +113,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'task',
       middlewares(async (res, session) => {
         // console.debug('task');
@@ -124,7 +124,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'yesno',
       middlewares(async (res, session) => {
         // console.debug('yesno');
@@ -135,7 +135,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_created',
       middlewares(async (res, session) => {
         // console.debug('note_created');
@@ -146,7 +146,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_updated',
       middlewares(async (res, session) => {
         // console.debug('note_updated');
@@ -157,7 +157,7 @@ export function workflow(dirPath: string) {
       })
     );
 
-    robot.respond(
+    robot.hear(
       'note_deleted',
       middlewares(async (res, session) => {
         // console.debug('note_deleted');

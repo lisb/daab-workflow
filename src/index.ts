@@ -66,9 +66,9 @@ export function workflow(dirPath: string) {
     }
   }
 
-  function needToSkip(res: Response<TextMessage>) {
+  function needToSkip(text: string) {
     try {
-      const data = JSON.parse(res.match[1]);
+      const data = JSON.parse(text);
       const names = Object.getOwnPropertyNames(data);
       return names.some((n) => ['in_reply_to', 'question', 'title', 'stamp_index'].includes(n));
     } catch (_) {
@@ -80,12 +80,13 @@ export function workflow(dirPath: string) {
     robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {
-        // console.debug('text:', res.match[1]);
-        if (needToSkip(res)) {
+        const text = res.match[1].replace(/^Hubot /i, '')
+        // console.debug('text:', text);
+        if (needToSkip(text)) {
           return;
         }
         // console.debug('text: begin');
-        const command = commands.parse(res.match[1]);
+        const command = commands.parse(text);
         if (command) {
           command.run(res, session);
         } else {

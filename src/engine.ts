@@ -431,7 +431,7 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        response: res.match[1],
+        response: res.match[1].replace(/^Hubot /i, ''),
       };
     }
 

@@ -8,6 +8,11 @@ export interface Workflow {
   name: string;
   steps: WorkflowStep[];
   on: WorkflowTriggerMap;
+  defaults: WorkflowDefaults;
+}
+
+export interface WorkflowDefaults {
+  nowait: boolean | undefined;
 }
 
 export interface WorkflowStep {

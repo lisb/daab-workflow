@@ -279,6 +279,9 @@ export class WorkflowContext {
 
   private evaluateWorkflowStep(step: WorkflowStep): WorkflowStep {
     const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
+    if (wstep.nowait === undefined) {
+      wstep.nowait = this.workflow.defaults?.nowait;
+    }
     if (typeof wstep.if === 'string') {
       wstep.if = (wstep.if as string).toLowerCase() === 'true';
     }
@@ -346,13 +349,13 @@ export class WorkflowContext {
           response: ar.data,
         };
       }
+      if (step.exitFlow || this.isLastStep) {
+        await this.exitWorkflow();
+        return;
+      }
       if (step.nowait) {
         this.runNextAction(res);
         return;
-      }
-
-      if (step.exitFlow || this.isLastStep) {
-        await this.exitWorkflow();
       }
     } else {
       await this.exitWorkflow();

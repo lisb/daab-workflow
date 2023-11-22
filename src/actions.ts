@@ -26,6 +26,13 @@ export interface Action {
   execute(): Promise<ActionResponse | undefined>;
 }
 
+export class NoopAction implements Action {
+  constructor(private readonly name: string, private readonly args: unknown) {}
+  async execute(): Promise<any> {
+    return this.args;
+  }
+}
+
 export class MessageAction implements Action {
   robot: Robot<Direct>;
 

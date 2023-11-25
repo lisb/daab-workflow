@@ -329,37 +329,42 @@ export class WorkflowContext {
     console.info('next:', next);
 
     if (next) {
-      const step = this.evaluateWorkflowStep(next);
-      if (step.if != undefined && step.if === false) {
-        this.runNextAction(res);
-        return;
-      }
-
-      const userId = this.getUserId(res, step);
-      const uc = await this.findOrCreateUserContext(userId);
-      uc.join(this);
-      await this.repository.saveUserContext(uc);
-      await this.repository.saveWorkflowContext(this);
-
-      const action = this.evaluateWorkflowAction(step, res);
-      let error;
-      const ar = await action.execute().catch((e) => console.error((error = e)));
-      if (ar && step.id) {
-        this.data[step.id] = {
-          ...this.data[step.id],
-          response: ar.data,
-        };
-      }
-      if (step.exitFlow || this.isLastStep || error) {
-        await this.exitWorkflow();
-        return;
-      }
-      if (step.nowait) {
-        this.runNextAction(res);
-        return;
-      }
+      await this.runCurrentStep(res);
     } else {
       await this.exitWorkflow();
+    }
+  }
+
+  private async runCurrentStep(res: Response<any>) {
+    const step = this.evaluateWorkflowStep(this.currentStep);
+    console.info('evaluated:', step);
+    if (step.if != undefined && step.if === false) {
+      this.runNextAction(res);
+      return;
+    }
+
+    const userId = this.getUserId(res, step);
+    const uc = await this.findOrCreateUserContext(userId);
+    uc.join(this);
+    await this.repository.saveUserContext(uc);
+    await this.repository.saveWorkflowContext(this);
+
+    const action = this.evaluateWorkflowAction(step, res);
+    let error;
+    const ar = await action.execute().catch((e) => console.error((error = e)));
+    if (ar && step.id) {
+      this.data[step.id] = {
+        ...this.data[step.id],
+        response: ar.data,
+      };
+    }
+    if (step.exitFlow || this.isLastStep || error) {
+      await this.exitWorkflow();
+      return;
+    }
+    if (step.nowait) {
+      this.runNextAction(res);
+      return;
     }
   }
 
@@ -376,26 +381,7 @@ export class WorkflowContext {
     this.reset();
     this.activate();
 
-    const step = this.evaluateWorkflowStep(this.currentStep);
-
-    const userId = this.getUserId(res, step);
-    const uc = await this.findOrCreateUserContext(userId);
-    uc.join(this);
-    await this.repository.saveUserContext(uc);
-    await this.repository.saveWorkflowContext(this);
-
-    const action = this.evaluateWorkflowAction(step, res);
-    const ar = await action.execute();
-    if (ar && step.id) {
-      this.data[step.id] = {
-        ...this.data[step.id],
-        response: ar.data,
-      };
-    }
-    if (step.nowait) {
-      this.runNextAction(res);
-      return;
-    }
+    await this.runCurrentStep(res);
   }
 
   async triggerWorkflow(type: WorkflowEventType) {

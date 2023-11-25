@@ -9,6 +9,9 @@ import { Repository } from './repository';
 import { UserContext, UserSession, Workflows } from './engine';
 import { Commands } from './commands';
 import { WorkflowEvent, WorkflowEventType } from './workflow';
+import pino from 'pino';
+
+export const logger = pino({ name: 'daab-workflow', level: process.env.HUBOT_LOG_LEVEL || 'info' });
 
 const _middlewares =
   (repository: Repository) =>
@@ -19,9 +22,9 @@ const _middlewares =
       await f(res, session);
       await repository.saveUserSession(session);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     } finally {
-      // console.debug('finally:', session);
+      // logger.debug({ finally: session });
     }
   };
 
@@ -31,7 +34,7 @@ export function workflow(dirPath: string) {
   const commands = new Commands(workflows);
   const middlewares = _middlewares(repository);
 
-  console.info('workflows loaded: ', workflows.getNames()); // TODO: delete
+  logger.info({ workflows_loaded: workflows.getNames() }); // TODO: delete
 
   async function findUser(res: Response<any>): Promise<UserContext | undefined> {
     const userId = res.message.user.id;
@@ -43,9 +46,9 @@ export function workflow(dirPath: string) {
     type: WorkflowEventType
   ) {
     const uc = await findUser(res);
-    // console.debug('found uc:', uc);
+    // logger.debug({found_uc: uc});
     const wc = await repository.findWorkflowContext(uc?.getCurrentWorkflowContextId());
-    // console.debug('found wc:', wc);
+    // logger.debug({found_wc: wc});
     if (wc) {
       return wc;
     }
@@ -80,12 +83,12 @@ export function workflow(dirPath: string) {
     robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {
-        const text = res.match[1].replace(/^Hubot /i, '')
-        // console.debug('text:', text);
+        const text = res.match[1].replace(/^Hubot /i, '');
+        // logger.debug({ text });
         if (needToSkip(text)) {
           return;
         }
-        // console.debug('text: begin');
+        // logger.debug({ text: 'begin' });
         const command = commands.parse(text);
         if (command) {
           command.run(res, session);
@@ -101,7 +104,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'select',
       middlewares(async (res, session) => {
-        // console.debug('select');
+        // logger.debug('select');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.Select);
         if (context && context.isActive()) {
           await context.handleSelect(res);
@@ -117,7 +120,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'task',
       middlewares(async (res, session) => {
-        // console.debug('task');
+        // logger.debug('task');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.Task);
         if (context && context.isActive()) {
           await context.handleTask(res);
@@ -128,7 +131,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'yesno',
       middlewares(async (res, session) => {
-        // console.debug('yesno');
+        // logger.debug('yesno');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.YesNo);
         if (context && context.isActive()) {
           await context.handleYesNo(res);
@@ -139,7 +142,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'note_created',
       middlewares(async (res, session) => {
-        // console.debug('note_created');
+        // logger.debug('note_created');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteCreated);
         if (context && context.isActive()) {
           await context.handleNoteCreated(res);
@@ -150,7 +153,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'note_updated',
       middlewares(async (res, session) => {
-        // console.debug('note_updated');
+        // logger.debug('note_updated');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteUpdated);
         if (context && context.isActive()) {
           await context.handleNoteUpdated(res);
@@ -161,7 +164,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       'note_deleted',
       middlewares(async (res, session) => {
-        // console.debug('note_deleted');
+        // logger.debug('note_deleted');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteDeleted);
         if (context && context.isActive()) {
           await context.handleNoteDeleted(res);
@@ -171,7 +174,7 @@ export function workflow(dirPath: string) {
 
     robot.join(
       middlewares(async (res, session) => {
-        // console.debug('join');
+        // logger.debug('join');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.Join);
         if (context && context.isActive()) {
           await context.handleJoin(res);
@@ -181,7 +184,7 @@ export function workflow(dirPath: string) {
 
     robot.leave(
       middlewares(async (res, session) => {
-        // console.debug('leave');
+        // logger.debug('leave');
         const context = await findCurrentWorkflowContext(res, WorkflowEvent.Leave);
         if (context && context.isActive()) {
           await context.handleLeave(res);

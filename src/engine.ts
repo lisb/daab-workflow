@@ -342,14 +342,15 @@ export class WorkflowContext {
       await this.repository.saveWorkflowContext(this);
 
       const action = this.evaluateWorkflowAction(step, res);
-      const ar = await action.execute();
+      let error;
+      const ar = await action.execute().catch((e) => console.error((error = e)));
       if (ar && step.id) {
         this.data[step.id] = {
           ...this.data[step.id],
           response: ar.data,
         };
       }
-      if (step.exitFlow || this.isLastStep) {
+      if (step.exitFlow || this.isLastStep || error) {
         await this.exitWorkflow();
         return;
       }

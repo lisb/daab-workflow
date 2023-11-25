@@ -36,6 +36,7 @@ import {
   WorkflowEventWith,
 } from './workflow';
 import { Repository } from './repository';
+import { logger } from '.';
 
 require('handlebars-helpers')();
 
@@ -326,7 +327,7 @@ export class WorkflowContext {
 
   private async runNextAction(res: Response<any>) {
     const next = this.goNextStep();
-    console.info('next:', next);
+    logger.debug({ next });
 
     if (next) {
       await this.runCurrentStep(res);
@@ -337,7 +338,7 @@ export class WorkflowContext {
 
   private async runCurrentStep(res: Response<any>) {
     const step = this.evaluateWorkflowStep(this.currentStep);
-    console.info('evaluated:', step);
+    logger.debug({ evaluated: step });
     if (step.if != undefined && step.if === false) {
       this.runNextAction(res);
       return;
@@ -351,7 +352,8 @@ export class WorkflowContext {
 
     const action = this.evaluateWorkflowAction(step, res);
     let error;
-    const ar = await action.execute().catch((e) => console.error((error = e)));
+    const ar = await action.execute().catch((e) => logger.error((error = e)));
+    logger.debug({ executed: ar })
     if (ar && step.id) {
       this.data[step.id] = {
         ...this.data[step.id],

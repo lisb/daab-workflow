@@ -83,7 +83,7 @@ export function workflow(dirPath: string) {
     robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {
-        const text = res.match[1].replace(/^Hubot /i, '');
+        const text = res.match[1].replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, '');
         // logger.debug({ text });
         if (needToSkip(text)) {
           return;

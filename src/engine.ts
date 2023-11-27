@@ -353,7 +353,7 @@ export class WorkflowContext {
     const action = this.evaluateWorkflowAction(step, res);
     let error;
     const ar = await action.execute().catch((e) => logger.error((error = e)));
-    logger.debug({ executed: ar })
+    logger.debug({ executed: ar });
     if (ar && step.id) {
       this.data[step.id] = {
         ...this.data[step.id],
@@ -439,7 +439,7 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        response: res.message.text.replace(/^Hubot /i, ''),
+        response: res.message.text.replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, ''),
       };
     }
 

@@ -120,7 +120,8 @@ export class CustomAction implements Action {
     private readonly args: unknown,
     readonly res: Response<any>
   ) {
-    this.f = require(name);
+    const mod = require(name);
+    this.f = mod.default ?? mod;
   }
 
   async execute(): Promise<ActionResponse | undefined> {

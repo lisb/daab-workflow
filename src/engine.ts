@@ -280,7 +280,9 @@ export class WorkflowContext {
   private evaluateWorkflowStep(step: WorkflowStep): WorkflowStep {
     const wstep = yaml.load(handlebars.compile(yaml.dump(step))(this.data)) as WorkflowStep;
     if (typeof wstep.if === 'string') {
-      wstep.if = (wstep.if as string).toLowerCase() === 'true';
+      wstep.if = !['', '0', 'false', 'nan', 'null', 'undefined'].includes(
+        (wstep.if as string).trim().toLowerCase()
+      );
     }
     wstep.with = this.evaluateActionWith(wstep.with);
     return wstep;

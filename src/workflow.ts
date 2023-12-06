@@ -28,6 +28,8 @@ export interface WorkflowStep {
 export const WorkflowEvent = {
   WorkflowDispatch: 'workflow_dispatch',
   Text: 'text',
+  File: 'file',
+  Files: 'files',
   Select: 'select',
   YesNo: 'yesno',
   Task: 'task',
@@ -47,6 +49,8 @@ export type WorkflowEventWith = Record<string, any>;
 
 export const DefaultAction = {
   Text: 'daab:message:text',
+  File: 'daab:message:file',
+  Files: 'daab:message:files',
   Select: 'daab:message:select',
   YesNo: 'daab:message:yesno',
   Task: 'daab:message:task',
@@ -68,12 +72,29 @@ export function getCustomActionName(s: string): string {
 
 export type DefaultActionWith =
   | DaabMessageTextWith
+  | DaabMessageFileWith
+  | DaabMessageFilesWith
   | DaabMessageSelectWith
   | DaabMessageYesNoWith
   | DaabMessageTaskWith;
 
 interface DaabMessageTextWith {
   text: string;
+  to: string | undefined;
+}
+
+interface DaabMessageFileWith {
+  path: string;
+  name: string | undefined;
+  type: string | undefined;
+  text: string | undefined;
+  to: string | undefined;
+}
+interface DaabMessageFilesWith {
+  path: string[];
+  name: string[] | undefined;
+  type: string[] | undefined;
+  text: string | undefined;
   to: string | undefined;
 }
 
@@ -98,6 +119,20 @@ export function isDaabMessageTextArgs(
   args: any
 ): args is DaabMessageTextWith {
   return action == DefaultAction.Text;
+}
+
+export function isDaabMessageFileArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageFileWith {
+  return action == DefaultAction.File;
+}
+
+export function isDaabMessageFilesArgs(
+  action: DefaultActionType,
+  args: any
+): args is DaabMessageFilesWith {
+  return action == DefaultAction.Files;
 }
 
 export function isDaabMessageSelectArgs(

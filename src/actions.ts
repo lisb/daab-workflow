@@ -16,6 +16,8 @@ import {
   WorkflowStepDefaultActionWith,
   isDaabMessageYesNoArgs,
   isDaabMessageTaskArgs,
+  isDaabMessageFileArgs,
+  isDaabMessageFilesArgs,
 } from './workflow';
 
 export class ActionResponse {
@@ -89,6 +91,12 @@ export class MessageAction implements Action {
     }
     if (isDaabMessageTextArgs(action, args)) {
       return { text: args.text };
+    }
+    if (isDaabMessageFileArgs(action, args)) {
+      return { path: args.path, name: args.name, type: args.type, text: args.text };
+    }
+    if (isDaabMessageFilesArgs(action, args)) {
+      return { path: args.path, name: args.name, type: args.type, text: args.text };
     }
     if (isDaabMessageYesNoArgs(action, args)) {
       return {

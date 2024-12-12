@@ -25,7 +25,7 @@
     "test": "jest"
   },
   "peerDependencies": {
-    "hubot-direct": "^3.0.0",
+    "hubot-direct": "^4.0.0",
     "lisb-hubot": "^5.0.0"
   },
   "devDependencies": {

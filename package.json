@@ -21,6 +21,7 @@
     "tsc": "tsc",
     "build": "rm -r ./dist; tsc",
     "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "test": "jest"
   },
   "peerDependencies": {

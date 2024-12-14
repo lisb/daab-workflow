@@ -1,11 +1,10 @@
-
-import type {
-  TextMessage,
-} from 'lisb-hubot';
+import type { TextMessage } from 'lisb-hubot';
 import type {
   NoteCreated,
   NoteDeleted,
   NoteUpdated,
+  RemoteFile,
+  RemoteFiles,
   Response,
   ResponseWithJson,
   SelectWithResponse,
@@ -54,6 +53,32 @@ export function isTriggerFired(
     case 'text': {
       const res = e as Response<TextMessage>;
       if (typeof trigger.match === 'string' && res.message.text.match(trigger.match)) {
+        return true;
+      }
+      break;
+    }
+    case 'file': {
+      const res = e as ResponseWithJson<RemoteFile>;
+      if (typeof trigger.name === 'string' && res.json.name.match(trigger.name)) {
+        return true;
+      }
+      if (typeof trigger.type === 'string' && res.json.content_type.match(trigger.type)) {
+        return true;
+      }
+      break;
+    }
+    case 'files': {
+      const res = e as ResponseWithJson<RemoteFiles>;
+      if (
+        typeof trigger.name === 'string' &&
+        res.json.files.every((file) => file.name.match(trigger.name))
+      ) {
+        return true;
+      }
+      if (
+        typeof trigger.type === 'string' &&
+        res.json.files.every((file) => file.content_type.match(trigger.type))
+      ) {
         return true;
       }
       break;

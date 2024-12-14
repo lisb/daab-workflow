@@ -102,6 +102,28 @@ export function workflow(dirPath: string) {
     );
 
     robot.hear(
+      'file',
+      middlewares(async (res, session) => {
+        // logger.debug('file');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.File);
+        if (context && context.isActive()) {
+          await context.handleFile(res);
+        }
+      })
+    );
+
+    robot.hear(
+      'files',
+      middlewares(async (res, session) => {
+        // logger.debug('files');
+        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Files);
+        if (context && context.isActive()) {
+          await context.handleFiles(res);
+        }
+      })
+    );
+
+    robot.hear(
       'select',
       middlewares(async (res, session) => {
         // logger.debug('select');

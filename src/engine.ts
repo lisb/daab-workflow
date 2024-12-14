@@ -22,6 +22,8 @@ import type {
   NoteUpdated,
   NoteDeleted,
   JoinMessage,
+  RemoteFile,
+  RemoteFiles,
 } from 'hubot-direct';
 import {
   DefaultAction,
@@ -442,6 +444,38 @@ export class WorkflowContext {
       this.data[current.id] = {
         responder: res.message.user,
         response: res.message.text.replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, ''),
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleFile(res: ResponseWithJson<RemoteFile>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.File) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        response: { file: res.json },
+      };
+    }
+
+    await this.runNextAction(res);
+  }
+
+  async handleFiles(res: ResponseWithJson<RemoteFiles>) {
+    const current = this.currentStep;
+    if (current.action != DefaultAction.Files) {
+      return;
+    }
+
+    if (current.id) {
+      this.data[current.id] = {
+        responder: res.message.user,
+        response: { files: res.json },
       };
     }
 

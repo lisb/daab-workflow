@@ -15,18 +15,18 @@ export const logger = pino({ name: 'daab-workflow', level: process.env.HUBOT_LOG
 
 const _middlewares =
   (repository: Repository) =>
-  <M extends Message, R extends Response<M>>(f: (res: R, session: UserSession) => Promise<void>) =>
-  async (res: R) => {
-    const session = await repository.findOrCreateUserSession(res.message.room, res.message.user.id);
-    try {
-      await f(res, session);
-      await repository.saveUserSession(session);
-    } catch (err) {
-      logger.error(err);
-    } finally {
-      // logger.debug({ finally: session });
-    }
-  };
+    <M extends Message, R extends Response<M>>(f: (res: R, session: UserSession) => Promise<void>) =>
+      async (res: R) => {
+        const session = await repository.findOrCreateUserSession(res.message.room, res.message.user.id);
+        try {
+          await f(res, session);
+          await repository.saveUserSession(session);
+        } catch (err) {
+          logger.error(err);
+        } finally {
+          // logger.debug({ finally: session });
+        }
+      };
 
 export function workflow(dirPath: string) {
   const repository = new Repository();
@@ -41,17 +41,15 @@ export function workflow(dirPath: string) {
     return repository.findUserContextByUserId(userId);
   }
 
-  async function findCurrentWorkflowContext<M extends Message>(
-    res: Response<M>,
-    type: WorkflowEventType
-  ) {
+  async function findCurrentWorkflowContext<M extends Message>(res: Response<M>) {
     const uc = await findUser(res);
     // logger.debug({found_uc: uc});
     const wc = await repository.findWorkflowContext(uc?.getCurrentWorkflowContextId());
     // logger.debug({found_wc: wc});
-    if (wc) {
-      return wc;
-    }
+    return wc;
+  }
+
+  async function createWorkflowContextByEvent<M extends Message>(res: Response<M>, type: WorkflowEventType) {
     const newContext = workflows.createWorkflowContextByEvent(type, res);
     if (newContext) {
       await newContext.triggerWorkflow(type);
@@ -93,7 +91,7 @@ export function workflow(dirPath: string) {
         if (command) {
           command.run(res, session);
         } else {
-          const context = await findCurrentWorkflowContext(res, WorkflowEvent.Text);
+          const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Text);
           if (context && context.isActive()) {
             await context.handleText(res);
           }
@@ -105,7 +103,7 @@ export function workflow(dirPath: string) {
       'file',
       middlewares(async (res, session) => {
         // logger.debug('file');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.File);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.File);
         if (context && context.isActive()) {
           await context.handleFile(res);
         }
@@ -116,7 +114,7 @@ export function workflow(dirPath: string) {
       'files',
       middlewares(async (res, session) => {
         // logger.debug('files');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Files);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Files);
         if (context && context.isActive()) {
           await context.handleFiles(res);
         }
@@ -127,7 +125,7 @@ export function workflow(dirPath: string) {
       'select',
       middlewares(async (res, session) => {
         // logger.debug('select');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Select);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Select);
         if (context && context.isActive()) {
           await context.handleSelect(res);
         } else {
@@ -143,7 +141,7 @@ export function workflow(dirPath: string) {
       'task',
       middlewares(async (res, session) => {
         // logger.debug('task');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Task);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Task);
         if (context && context.isActive()) {
           await context.handleTask(res);
         }
@@ -154,7 +152,7 @@ export function workflow(dirPath: string) {
       'yesno',
       middlewares(async (res, session) => {
         // logger.debug('yesno');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.YesNo);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.YesNo);
         if (context && context.isActive()) {
           await context.handleYesNo(res);
         }
@@ -165,7 +163,7 @@ export function workflow(dirPath: string) {
       'note_created',
       middlewares(async (res, session) => {
         // logger.debug('note_created');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteCreated);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.NoteCreated);
         if (context && context.isActive()) {
           await context.handleNoteCreated(res);
         }
@@ -176,7 +174,7 @@ export function workflow(dirPath: string) {
       'note_updated',
       middlewares(async (res, session) => {
         // logger.debug('note_updated');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteUpdated);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.NoteUpdated);
         if (context && context.isActive()) {
           await context.handleNoteUpdated(res);
         }
@@ -187,7 +185,7 @@ export function workflow(dirPath: string) {
       'note_deleted',
       middlewares(async (res, session) => {
         // logger.debug('note_deleted');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.NoteDeleted);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.NoteDeleted);
         if (context && context.isActive()) {
           await context.handleNoteDeleted(res);
         }
@@ -197,7 +195,7 @@ export function workflow(dirPath: string) {
     robot.join(
       middlewares(async (res, session) => {
         // logger.debug('join');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Join);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Join);
         if (context && context.isActive()) {
           await context.handleJoin(res);
         }
@@ -207,7 +205,7 @@ export function workflow(dirPath: string) {
     robot.leave(
       middlewares(async (res, session) => {
         // logger.debug('leave');
-        const context = await findCurrentWorkflowContext(res, WorkflowEvent.Leave);
+        const context = await findCurrentWorkflowContext(res) ?? await createWorkflowContextByEvent(res, WorkflowEvent.Leave);
         if (context && context.isActive()) {
           await context.handleLeave(res);
         }

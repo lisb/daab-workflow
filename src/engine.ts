@@ -58,8 +58,9 @@ export class Workflows {
 
     const docs = new Map<string, Workflow>();
     filenames.forEach((fn) => {
-      const w = this.parse(yaml.load(fs.readFileSync(fn, 'utf8')));
+      const w = yaml.load(fs.readFileSync(fn, 'utf8'));
       if (this.validate(w)) {
+        w.on = parseTrigger(w.on);
         docs.set(w.name, w);
       } else {
         throw new Error(`invalid workflow: ${fn}`);
@@ -68,14 +69,7 @@ export class Workflows {
     return new Workflows(docs, repository);
   }
 
-  static parse(w: any): Workflow {
-    if (w) {
-      w.on = parseTrigger(w.on);
-    }
-    return w;
-  }
-
-  static validate(obj: Workflow): boolean {
+  static validate(obj: any): obj is Workflow {
     return (
       typeof obj === 'object' &&
       typeof obj.version === 'number' &&

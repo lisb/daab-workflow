@@ -12,7 +12,6 @@ import type {
 import {
   WorkflowEvent,
   WorkflowEventType,
-  WorkflowEventWith,
   WorkflowTrigger,
   WorkflowTriggerMap,
 } from './workflow';
@@ -41,7 +40,7 @@ export function parseTrigger(on: any): WorkflowTriggerMap {
 export function isTriggerFired(
   type: WorkflowEventType,
   trigger: WorkflowTrigger | undefined,
-  e: WorkflowEventWith | undefined
+  e: Response<any> | undefined
 ): boolean {
   if (!trigger) {
     return false;

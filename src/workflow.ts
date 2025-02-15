@@ -45,8 +45,6 @@ export type WorkflowTrigger = Record<string, any>;
 
 export type WorkflowTriggerMap = Partial<{ [e in WorkflowEventType]: WorkflowTrigger }>;
 
-export type WorkflowEventWith = Record<string, any>;
-
 export const DefaultAction = {
   Text: 'daab:message:text',
   File: 'daab:message:file',

@@ -35,7 +35,6 @@ import {
   getCustomActionName,
   WorkflowEvent,
   WorkflowEventType,
-  WorkflowEventWith,
 } from './workflow';
 import { Repository } from './repository';
 import { logger } from '.';
@@ -92,7 +91,7 @@ export class Workflows {
     return this.filterByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
   }
 
-  filterByEvent(type: WorkflowEventType, e?: WorkflowEventWith): Workflow[] {
+  filterByEvent(type: WorkflowEventType, e?: Response<any>): Workflow[] {
     return this.getNames()
       .map((name) => this.findByName(name)!)
       .filter((workflow) => isTriggerFired(type, workflow.on[type], e));
@@ -112,7 +111,7 @@ export class Workflows {
 
   createWorkflowContextByEvent(
     type: WorkflowEventType,
-    e?: WorkflowEventWith
+    e?: Response<any>
   ): WorkflowContext | undefined {
     const workflow = this.filterByEvent(type, e);
     if (workflow.length) {

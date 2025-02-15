@@ -77,7 +77,10 @@ export class Workflows {
       typeof obj.name === 'string' &&
       !!obj.name &&
       Array.isArray(obj.steps) &&
-      typeof obj.on === 'object'
+      (!obj.on
+        || typeof obj.on === 'object'
+        || typeof obj.on === 'string'
+        || Array.isArray(obj.on))
     );
   }
 

@@ -40,7 +40,7 @@ export function parseTrigger(on: any): WorkflowTriggerMap {
 export function isTriggerFired(
   type: WorkflowEventType,
   trigger: WorkflowTrigger | undefined,
-  e: Response<any> | undefined
+  e?: Response<any>
 ): boolean {
   if (!trigger) {
     return false;

@@ -525,7 +525,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }
@@ -542,7 +541,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }
@@ -559,7 +557,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }

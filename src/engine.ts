@@ -35,7 +35,6 @@ import {
   getCustomActionName,
   WorkflowEvent,
   WorkflowEventType,
-  WorkflowEventWith,
 } from './workflow';
 import { Repository } from './repository';
 import { logger } from '.';
@@ -58,8 +57,9 @@ export class Workflows {
 
     const docs = new Map<string, Workflow>();
     filenames.forEach((fn) => {
-      const w = this.parse(yaml.load(fs.readFileSync(fn, 'utf8')));
+      const w = yaml.load(fs.readFileSync(fn, 'utf8'));
       if (this.validate(w)) {
+        w.on = parseTrigger(w.on);
         docs.set(w.name, w);
       } else {
         throw new Error(`invalid workflow: ${fn}`);
@@ -68,14 +68,7 @@ export class Workflows {
     return new Workflows(docs, repository);
   }
 
-  static parse(w: any): Workflow {
-    if (w) {
-      w.on = parseTrigger(w.on);
-    }
-    return w;
-  }
-
-  static validate(obj: Workflow): boolean {
+  static validate(obj: any): obj is Workflow {
     return (
       typeof obj === 'object' &&
       typeof obj.version === 'number' &&
@@ -83,7 +76,10 @@ export class Workflows {
       typeof obj.name === 'string' &&
       !!obj.name &&
       Array.isArray(obj.steps) &&
-      typeof obj.on === 'object'
+      (!obj.on
+        || typeof obj.on === 'object'
+        || typeof obj.on === 'string'
+        || Array.isArray(obj.on))
     );
   }
 
@@ -95,7 +91,7 @@ export class Workflows {
     return this.filterByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
   }
 
-  filterByEvent(type: WorkflowEventType, e?: WorkflowEventWith): Workflow[] {
+  filterByEvent(type: WorkflowEventType, e?: Response<any>): Workflow[] {
     return this.getNames()
       .map((name) => this.findByName(name)!)
       .filter((workflow) => isTriggerFired(type, workflow.on[type], e));
@@ -115,7 +111,7 @@ export class Workflows {
 
   createWorkflowContextByEvent(
     type: WorkflowEventType,
-    e?: WorkflowEventWith
+    e?: Response<any>
   ): WorkflowContext | undefined {
     const workflow = this.filterByEvent(type, e);
     if (workflow.length) {
@@ -194,7 +190,6 @@ export class WorkflowContext {
   private valid = true;
   private stepIndex = 0;
   private data: WorkflowStepData = {};
-  private readonly firstStep = { id: 'on' } as WorkflowStep;
   private readonly actors = new Set<string>();
 
   private constructor(
@@ -254,8 +249,12 @@ export class WorkflowContext {
 
   private resetByEvent(type: WorkflowEventType) {
     this.stepIndex = -1;
-    this.data = {};
-    this.firstStep.action = `daab:message:${type.split('_')[0]}`;
+    this.data = { eventType: type };
+  }
+
+  // trigger に対応する仮想敵なステップを返す
+  private get firstStep() {
+    return { id: 'on', action: `daab:message:${(this.data.eventType ?? 'unknown').split('_')[0]}` } as WorkflowStep
   }
 
   private get currentStep() {
@@ -525,7 +524,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }
@@ -542,7 +540,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }
@@ -559,7 +556,6 @@ export class WorkflowContext {
     if (current.id) {
       this.data[current.id] = {
         responder: res.message.user,
-        ...res.json,
         response: { note: res.json },
       };
     }
@@ -569,7 +565,7 @@ export class WorkflowContext {
 
   async handleJoin(res: Response<JoinMessage>) {
     const current = this.currentStep;
-    if (current.action != 'daab:message:join') {
+    if (current.action != DefaultAction.Join) {
       return;
     }
 
@@ -584,7 +580,7 @@ export class WorkflowContext {
 
   async handleLeave(res: Response<LeaveMessage>) {
     const current = this.currentStep;
-    if (current.action != 'daab:message:leave') {
+    if (current.action != DefaultAction.Leave) {
       return;
     }
 

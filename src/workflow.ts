@@ -39,13 +39,11 @@ export const WorkflowEvent = {
   NoteUpdated: 'note_updated',
   NoteDeleted: 'note_deleted',
 } as const;
-export type WorkflowEventType = (typeof WorkflowEvent)[keyof typeof WorkflowEvent];
+export type WorkflowEventType = typeof WorkflowEvent[keyof typeof WorkflowEvent];
 
 export type WorkflowTrigger = Record<string, any>;
 
 export type WorkflowTriggerMap = Partial<{ [e in WorkflowEventType]: WorkflowTrigger }>;
-
-export type WorkflowEventWith = Record<string, any>;
 
 export const DefaultAction = {
   Text: 'daab:message:text',
@@ -55,6 +53,8 @@ export const DefaultAction = {
   YesNo: 'daab:message:yesno',
   Task: 'daab:message:task',
   Note: 'daab:message:note',
+  Join: 'daab:message:join',
+  Leave: 'daab:message:leave',
 } as const;
 export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction];
 

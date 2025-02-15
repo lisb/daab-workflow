@@ -39,7 +39,7 @@ export const WorkflowEvent = {
   NoteUpdated: 'note_updated',
   NoteDeleted: 'note_deleted',
 } as const;
-export type WorkflowEventType = (typeof WorkflowEvent)[keyof typeof WorkflowEvent];
+export type WorkflowEventType = typeof WorkflowEvent[keyof typeof WorkflowEvent];
 
 export type WorkflowTrigger = Record<string, any>;
 

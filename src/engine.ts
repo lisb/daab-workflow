@@ -191,7 +191,6 @@ export class WorkflowContext {
   private valid = true;
   private stepIndex = 0;
   private data: WorkflowStepData = {};
-  private readonly firstStep = { id: 'on' } as WorkflowStep;
   private readonly actors = new Set<string>();
 
   private constructor(
@@ -251,8 +250,12 @@ export class WorkflowContext {
 
   private resetByEvent(type: WorkflowEventType) {
     this.stepIndex = -1;
-    this.data = {};
-    this.firstStep.action = `daab:message:${type.split('_')[0]}`;
+    this.data = { eventType: type };
+  }
+
+  // trigger に対応する仮想敵なステップを返す
+  private get firstStep() {
+    return { id: 'on', action: `daab:message:${(this.data.eventType ?? 'unknown').split('_')[0]}` } as WorkflowStep
   }
 
   private get currentStep() {
@@ -566,7 +569,7 @@ export class WorkflowContext {
 
   async handleJoin(res: Response<JoinMessage>) {
     const current = this.currentStep;
-    if (current.action != 'daab:message:join') {
+    if (current.action != DefaultAction.Join) {
       return;
     }
 
@@ -581,7 +584,7 @@ export class WorkflowContext {
 
   async handleLeave(res: Response<LeaveMessage>) {
     const current = this.currentStep;
-    if (current.action != 'daab:message:leave') {
+    if (current.action != DefaultAction.Leave) {
       return;
     }
 

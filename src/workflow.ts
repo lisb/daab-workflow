@@ -55,6 +55,8 @@ export const DefaultAction = {
   YesNo: 'daab:message:yesno',
   Task: 'daab:message:task',
   Note: 'daab:message:note',
+  Join: 'daab:message:join',
+  Leave: 'daab:message:leave',
 } as const;
 export type DefaultActionType = typeof DefaultAction[keyof typeof DefaultAction];
 

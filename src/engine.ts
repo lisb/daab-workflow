@@ -9,7 +9,7 @@ import path from 'path';
 import * as uuid from 'uuid';
 import yaml from 'js-yaml';
 import { Action, CustomAction, MessageAction, NoopAction } from './actions';
-import { parseTrigger, isTriggerFired } from './triggers';
+import { parseTrigger, isTriggerFired, isScheduleTrigger } from './triggers';
 import type { Robot, TextMessage, LeaveMessage } from 'lisb-hubot';
 import type {
   Direct,
@@ -88,21 +88,27 @@ export class Workflows {
   }
 
   getSelectableNames(): string[] {
-    return this.filterByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
+    return this.getWorkflowsByEvent(WorkflowEvent.WorkflowDispatch).map((workflow) => workflow.name);
   }
 
-  filterByEvent(type: WorkflowEventType, e?: Response<any>): Workflow[] {
-    return this.getNames()
-      .map((name) => this.findByName(name)!)
-      .filter((workflow) => isTriggerFired(type, workflow.on[type], e));
+  getWorkflows(): Workflow[] {
+    return Array.from(this.docs.values());
   }
 
-  findByName(name: string): Workflow | undefined {
+  getScheduledWorkflows(): Workflow[] {
+    return this.getWorkflows().filter((workflow) => isScheduleTrigger(workflow.on));
+  }
+
+  getWorkflowsByEvent(type: WorkflowEventType, e?: Response<any>): Workflow[] {
+    return this.getWorkflows().filter((workflow) => isTriggerFired(type, workflow.on[type], e));
+  }
+
+  getWorkflowByName(name: string): Workflow | undefined {
     return this.docs.get(name);
   }
 
   createWorkflowContext(name: string): WorkflowContext | undefined {
-    const workflow = this.findByName(name);
+    const workflow = this.getWorkflowByName(name);
     if (workflow) {
       return WorkflowContext.create(workflow, this.repository);
     }
@@ -113,7 +119,7 @@ export class Workflows {
     type: WorkflowEventType,
     e?: Response<any>
   ): WorkflowContext | undefined {
-    const workflow = this.filterByEvent(type, e);
+    const workflow = this.getWorkflowsByEvent(type, e);
     if (workflow.length) {
       return WorkflowContext.create(workflow[0], this.repository);
     }

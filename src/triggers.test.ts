@@ -1,5 +1,5 @@
 import yaml from 'js-yaml';
-import { isTriggerFired, parseTrigger } from './triggers';
+import { isTriggerFired, parseTrigger, isScheduleTrigger } from './triggers';
 
 describe('parseTrigger', () => {
   const parse = (input: string) => parseTrigger((yaml.load(input) as any).on)
@@ -112,5 +112,18 @@ describe('isTriggerFired', () => {
     const res = { json: { title: 'trigger_title' } } as any;
     expect(isTriggerFired('note_deleted', { title: 'unmatched_title' }, res)).toEqual(false);
     expect(isTriggerFired('note_deleted', { title: 'trigger_title' }, res)).toEqual(true);
+  });
+});
+
+describe('isScheduleTrigger', () => {
+  it('NG', () => {
+    expect(isScheduleTrigger(undefined)).toEqual(false);
+    expect(isScheduleTrigger({})).toEqual(false);
+    expect(isScheduleTrigger({ schedule: [] })).toEqual(false);
+    expect(isScheduleTrigger({ schedule: [{}] })).toEqual(false);
+  });
+
+  it('OK', () => {
+    expect(isScheduleTrigger({ schedule: [{ cron: '0 0 * * *' }] })).toEqual(true);
   });
 });

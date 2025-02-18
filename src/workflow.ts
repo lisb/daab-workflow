@@ -38,12 +38,13 @@ export const WorkflowEvent = {
   NoteCreated: 'note_created',
   NoteUpdated: 'note_updated',
   NoteDeleted: 'note_deleted',
+  Schedule: 'schedule',
 } as const;
 export type WorkflowEventType = typeof WorkflowEvent[keyof typeof WorkflowEvent];
 
 export type WorkflowTrigger = Record<string, any>;
 
-export type WorkflowTriggerMap = Partial<{ [e in WorkflowEventType]: WorkflowTrigger }>;
+export type WorkflowTriggerMap = Partial<{ [e in WorkflowEventType]: WorkflowTrigger } & { schedule: { cron: string }[] }>;
 
 export const DefaultAction = {
   Text: 'daab:message:text',

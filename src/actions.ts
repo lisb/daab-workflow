@@ -52,9 +52,16 @@ export class MessageAction implements Action {
     const isPairTalk = (talk: Talk) => talk.type === 1; // DirectTalkType.Pair;
     const areYouTarget = (user: User) => user.displayName === this.to;
 
+    const talkId = (this.robot.direct as any).parseInt64(this.to ?? '');
+    if (talkId) {
+      const talk = talks[`_${talkId.high}_${talkId.low}`];
+      if (talk) {
+        return talk;
+      }
+    }
+
     const talk = Object.values(talks)
-      .filter(isPairTalk)
-      .find((t) => t.users.some(areYouTarget));
+      .find((t) => isPairTalk(t) ? t.users.some(areYouTarget) : t.name === this.to);
     if (!talk) {
       throw new Error(`destination talk not found: ${this.to}`);
     }

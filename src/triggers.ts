@@ -123,3 +123,7 @@ export function isTriggerFired(
   }
   return false;
 }
+
+export function isScheduleTrigger(trigger: WorkflowTrigger | undefined) {
+  return Array.isArray(trigger?.schedule) && trigger!.schedule.some((s) => s.cron);
+}

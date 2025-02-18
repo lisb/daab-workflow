@@ -1,0 +1,14 @@
+version: 1
+
+name: スケジュールの例
+
+on:
+  schedule:
+    - cron: '* * * * *'
+
+steps:
+  - name: send message
+    action: daab:message:text
+    with:
+      to: talk_name_1
+      text: スケジュールで実行されました

@@ -8,6 +8,7 @@ import type { Response, ResponseWithJson, SelectWithResponse } from 'hubot-direc
 import { Repository } from './repository';
 import { UserContext, UserSession, Workflows } from './engine';
 import { Commands } from './commands';
+import { Scheduler } from './scheduler';
 import { WorkflowEvent, WorkflowEventType } from './workflow';
 import pino from 'pino';
 
@@ -32,6 +33,7 @@ export function workflow(dirPath: string) {
   const repository = new Repository();
   const workflows = Workflows.init(dirPath, repository);
   const commands = new Commands(workflows);
+  const scheduler = new Scheduler(workflows);
   const middlewares = _middlewares(repository);
 
   logger.info({ workflows_loaded: workflows.getNames() }); // TODO: delete
@@ -78,6 +80,8 @@ export function workflow(dirPath: string) {
   }
 
   const handlers = (robot: Robot) => {
+    scheduler.setup(robot);
+
     robot.hear(
       /(.+)$/i,
       middlewares(async (res, session) => {

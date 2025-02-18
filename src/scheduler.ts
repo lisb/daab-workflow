@@ -14,6 +14,7 @@ export class Scheduler {
     this.workflows.getScheduledWorkflows().forEach((workflow) => {
       workflow.on.schedule!.forEach((schedule) => {
         if (cron.validate(schedule.cron)) {
+          logger.info({ workflow: workflow.name, scheduled: schedule.cron });
           const task = cron.schedule(schedule.cron, async () => {
             await this.startWorkflow(res, workflow.name);
           });
@@ -26,7 +27,7 @@ export class Scheduler {
   }
 
   private async startWorkflow(res: ResponseWithJson<SelectWithResponse>, name: string) {
-    logger.info('start workflow on schedule', name);
+    logger.info(`start workflow on schedule: ${name}`);
     const newContext = this.workflows.createWorkflowContext(name);
     if (newContext) {
       await newContext.startWokflow(res);

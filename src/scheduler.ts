@@ -10,6 +10,7 @@ export class Scheduler {
 
   setup(robot: Robot) {
     const res = this.createSelectResponse(robot);
+    this.stopAll();
     this.tasks = [];
     this.workflows.getScheduledWorkflows().forEach((workflow) => {
       workflow.on.schedule!.forEach((schedule) => {

@@ -75,7 +75,7 @@ describe('WorkflowContext', () => {
     const selectRes = { robot, message: { user }, json: { response: 0, options: ['test'] }, send: jest.fn() } as any;
     await context.startWokflow(selectRes);
     expect(selectRes.send).toHaveBeenCalledTimes(1);
-    expect(selectRes.send).toHaveBeenCalledWith({ text: '何か入力してください' });
+    expect(selectRes.send).toHaveBeenCalledWith('何か入力してください');
 
     expect(context.isActive()).toBe(true);
     expect(context.state().stepIndex).toBe(0);
@@ -83,7 +83,7 @@ describe('WorkflowContext', () => {
     const textRes = { robot, message: { user, text: 'test' }, send: jest.fn() } as any;
     await context.handleText(textRes);
     expect(textRes.send).toHaveBeenCalledTimes(1);
-    expect(textRes.send).toHaveBeenCalledWith({ text: 'ECHO >> test' });
+    expect(textRes.send).toHaveBeenCalledWith('ECHO >> test');
 
     expect(context.isActive()).toBe(false);
     expect(context.state().stepIndex).toBe(0);
@@ -98,7 +98,7 @@ describe('WorkflowContext', () => {
 
     await context.handleText(triggerRes);
     expect(triggerRes.send).toHaveBeenCalledTimes(1);
-    expect(triggerRes.send).toHaveBeenCalledWith({ text: '何か入力してください' });
+    expect(triggerRes.send).toHaveBeenCalledWith('何か入力してください');
 
     expect(context.isActive()).toBe(true);
     expect(context.state().stepIndex).toBe(0);
@@ -106,7 +106,7 @@ describe('WorkflowContext', () => {
     const textRes = { robot, message: { user, text: 'test' }, send: jest.fn() } as any;
     await context.handleText(textRes);
     expect(textRes.send).toHaveBeenCalledTimes(1);
-    expect(textRes.send).toHaveBeenCalledWith({ text: 'ECHO >> test' });
+    expect(textRes.send).toHaveBeenCalledWith('ECHO >> test');
 
     expect(context.isActive()).toBe(false);
     expect(context.state().stepIndex).toBe(0);

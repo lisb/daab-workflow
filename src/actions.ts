@@ -97,7 +97,7 @@ export class MessageAction implements Action {
       };
     }
     if (isDaabMessageTextArgs(action, args)) {
-      return { text: args.text };
+      return args.text; // FIXME: string だとメッセージ最大長で分割送信されるが { text } だと分割されない
     }
     if (isDaabMessageFileArgs(action, args)) {
       return { path: args.path, name: args.name, type: args.type, text: args.text };

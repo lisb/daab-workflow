@@ -65,6 +65,10 @@ Finally, run daab as usual.
 DISABLE_NPM_INSTALL=yes npm start
 ```
 
+## Workflow Specification
+
+For detailed workflow specification, please see [SPEC.md](./SPEC.md).
+
 ## Contribution
 
 TODO

@@ -1,5 +1,6 @@
-import type { TextMessage } from 'lisb-hubot';
+import type { Message, TextMessage } from 'lisb-hubot';
 import type {
+  JsonContent,
   NoteCreated,
   NoteDeleted,
   NoteUpdated,
@@ -40,12 +41,15 @@ export function parseTrigger(on: any): WorkflowTriggerMap {
 export function isTriggerFired(
   type: WorkflowEventType,
   trigger: WorkflowTrigger | undefined,
-  e?: Response<any>
+  e?: Response<Message> | ResponseWithJson<JsonContent>,
 ): boolean {
   if (!trigger) {
     return false;
   }
   if (Object.keys(trigger).length == 0) {
+    return true;
+  }
+  if (trigger.roomType && e?.message.roomType && trigger.roomType === e?.message.roomType) {
     return true;
   }
   switch (type) {

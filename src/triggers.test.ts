@@ -113,6 +113,23 @@ describe('isTriggerFired', () => {
     expect(isTriggerFired('note_deleted', { title: 'unmatched_title' }, res)).toEqual(false);
     expect(isTriggerFired('note_deleted', { title: 'trigger_title' }, res)).toEqual(true);
   });
+
+  it('common.roomType', () => {
+    const unknown = { message: { roomType: 0 } } as any;
+    expect(isTriggerFired('text', { roomType: 0 }, unknown)).toEqual(false);
+    expect(isTriggerFired('text', { roomType: 1 }, unknown)).toEqual(false);
+    expect(isTriggerFired('text', { roomType: 2 }, unknown)).toEqual(false);
+
+    const pair = { message: { roomType: 1 } } as any;
+    expect(isTriggerFired('text', { roomType: 0 }, pair)).toEqual(false);
+    expect(isTriggerFired('text', { roomType: 1 }, pair)).toEqual(true);
+    expect(isTriggerFired('text', { roomType: 2 }, pair)).toEqual(false);
+
+    const group = { message: { roomType: 2 } } as any;
+    expect(isTriggerFired('text', { roomType: 0 }, group)).toEqual(false);
+    expect(isTriggerFired('text', { roomType: 1 }, group)).toEqual(false);
+    expect(isTriggerFired('text', { roomType: 2 }, group)).toEqual(true);
+  });
 });
 
 describe('isScheduleTrigger', () => {

@@ -55,7 +55,8 @@ export function isTriggerFired(
   switch (type) {
     case 'text': {
       const res = e as Response<TextMessage>;
-      if (typeof trigger.match === 'string' && res.message.text.match(trigger.match)) {
+      // TODO: ペアトークのメッセージに Hubot が入ってくる。メンションの扱い。実用的には本文にマッチさせたい。
+      if (typeof trigger.match === 'string' && res.message.text.replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, '').match(trigger.match)) {
         return true;
       }
       break;

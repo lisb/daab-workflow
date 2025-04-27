@@ -67,9 +67,10 @@ describe('isTriggerFired', () => {
     expect(isTriggerFired('file', { type: 'unmatched_type' }, res)).toEqual(false);
     expect(isTriggerFired('file', { type: 'trigger_type' }, res)).toEqual(true);
 
+    // both conditions must match (AND condition)
     expect(isTriggerFired('file', { name: 'unmatched_file', type: 'unmatched_type' }, res)).toEqual(false);
-    expect(isTriggerFired('file', { name: 'trigger_file', type: 'unmatched_type' }, res)).toEqual(true);
-    expect(isTriggerFired('file', { name: 'unmatched_file', type: 'trigger_type' }, res)).toEqual(true);
+    expect(isTriggerFired('file', { name: 'trigger_file', type: 'unmatched_type' }, res)).toEqual(false);
+    expect(isTriggerFired('file', { name: 'unmatched_file', type: 'trigger_type' }, res)).toEqual(false);
     expect(isTriggerFired('file', { name: 'trigger_file', type: 'trigger_type' }, res)).toEqual(true);
   });
 
@@ -81,9 +82,10 @@ describe('isTriggerFired', () => {
     expect(isTriggerFired('files', { type: 'unmatched_type' }, res)).toEqual(false);
     expect(isTriggerFired('files', { type: 'trigger_type' }, res)).toEqual(true);
 
+    // both conditions must match (AND condition)
     expect(isTriggerFired('files', { name: 'unmatched_file', type: 'unmatched_type' }, res)).toEqual(false);
-    expect(isTriggerFired('files', { name: 'trigger_file', type: 'unmatched_type' }, res)).toEqual(true);
-    expect(isTriggerFired('files', { name: 'unmatched_file', type: 'trigger_type' }, res)).toEqual(true);
+    expect(isTriggerFired('files', { name: 'trigger_file', type: 'unmatched_type' }, res)).toEqual(false);
+    expect(isTriggerFired('files', { name: 'unmatched_file', type: 'trigger_type' }, res)).toEqual(false);
     expect(isTriggerFired('files', { name: 'trigger_file', type: 'trigger_type' }, res)).toEqual(true);
   });
 
@@ -94,24 +96,102 @@ describe('isTriggerFired', () => {
 
     expect(isTriggerFired('select', { response: 0 }, res)).toEqual(false);
     expect(isTriggerFired('select', { response: 42 }, res)).toEqual(true);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('select', { response: 0, question: { match: 'unmatched_question' } }, res)).toEqual(false);
+    expect(isTriggerFired('select', { response: 42, question: { match: 'unmatched_question' } }, res)).toEqual(false);
+    expect(isTriggerFired('select', { response: 0, question: { match: 'trigger_question' } }, res)).toEqual(false);
+    expect(isTriggerFired('select', { response: 42, question: { match: 'trigger_question' } }, res)).toEqual(true);
   });
 
   it('note_created', () => {
     const res = { json: { title: 'trigger_title' } } as any;
     expect(isTriggerFired('note_created', { title: 'unmatched_title' }, res)).toEqual(false);
     expect(isTriggerFired('note_created', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_created', { has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_created', { has_attachments: true }, res)).toEqual(false);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_created', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'trigger_title', has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_created', { title: 'trigger_title', has_attachments: true }, res)).toEqual(false);
+  });
+
+  it('note_created.has_attachments', () => {
+    const res = { json: { title: 'trigger_title', has_attachments: true } } as any;
+    expect(isTriggerFired('note_created', { title: 'unmatched_title' }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_created', { has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { has_attachments: true }, res)).toEqual(true);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_created', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'trigger_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_created', { title: 'trigger_title', has_attachments: true }, res)).toEqual(true);
   });
 
   it('note_updated', () => {
     const res = { json: { title: 'trigger_title' } } as any;
     expect(isTriggerFired('note_updated', { title: 'unmatched_title' }, res)).toEqual(false);
     expect(isTriggerFired('note_updated', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_updated', { has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_updated', { has_attachments: true }, res)).toEqual(false);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_updated', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'trigger_title', has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_updated', { title: 'trigger_title', has_attachments: true }, res)).toEqual(false);
+  });
+
+  it('note_updated.has_attachments', () => {
+    const res = { json: { title: 'trigger_title', has_attachments: true } } as any;
+    expect(isTriggerFired('note_updated', { title: 'unmatched_title' }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_updated', { has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { has_attachments: true }, res)).toEqual(true);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_updated', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'trigger_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_updated', { title: 'trigger_title', has_attachments: true }, res)).toEqual(true);
   });
 
   it('note_deleted', () => {
     const res = { json: { title: 'trigger_title' } } as any;
     expect(isTriggerFired('note_deleted', { title: 'unmatched_title' }, res)).toEqual(false);
     expect(isTriggerFired('note_deleted', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_deleted', { has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_deleted', { has_attachments: true }, res)).toEqual(false);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_deleted', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'trigger_title', has_attachments: false }, res)).toEqual(true);
+    expect(isTriggerFired('note_deleted', { title: 'trigger_title', has_attachments: true }, res)).toEqual(false);
+  });
+
+  it('note_deleted.has_attachments', () => {
+    const res = { json: { title: 'trigger_title', has_attachments: true } } as any;
+    expect(isTriggerFired('note_deleted', { title: 'unmatched_title' }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'trigger_title' }, res)).toEqual(true);
+
+    expect(isTriggerFired('note_deleted', { has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { has_attachments: true }, res)).toEqual(true);
+
+    // both conditions must match (AND condition)
+    expect(isTriggerFired('note_deleted', { title: 'unmatched_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'unmatched_title', has_attachments: true }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'trigger_title', has_attachments: false }, res)).toEqual(false);
+    expect(isTriggerFired('note_deleted', { title: 'trigger_title', has_attachments: true }, res)).toEqual(true);
   });
 
   it('common.roomType', () => {

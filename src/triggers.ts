@@ -49,61 +49,52 @@ export function isTriggerFired(
   if (Object.keys(trigger).length == 0) {
     return true;
   }
-  if (trigger.roomType && e?.message.roomType && trigger.roomType === e?.message.roomType) {
-    return true;
+  let ok = true;
+  if (typeof trigger.roomType == 'number' && typeof e?.message.roomType == 'number') {
+    ok = ok && trigger.roomType > 0 && e.message.roomType > 0 && trigger.roomType === e.message.roomType;
   }
   switch (type) {
     case 'text': {
       const res = e as Response<TextMessage>;
       // TODO: ペアトークのメッセージに Hubot が入ってくる。メンションの扱い。実用的には本文にマッチさせたい。
-      if (typeof trigger.match === 'string' && res.message.text.replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, '').match(trigger.match)) {
-        return true;
+      if (typeof trigger.match === 'string') {
+        ok = ok && !!res.message.text.replace(/^Hubot /i, '').replace(/^@.*\sさん\s/, '').match(trigger.match)
       }
       break;
     }
     case 'file': {
       const res = e as ResponseWithJson<RemoteFile>;
-      if (typeof trigger.name === 'string' && res.json.name.match(trigger.name)) {
-        return true;
+      if (typeof trigger.name === 'string') {
+        ok = ok && !!res.json.name.match(trigger.name);
       }
-      if (typeof trigger.type === 'string' && res.json.content_type.match(trigger.type)) {
-        return true;
+      if (typeof trigger.type === 'string') {
+        ok = ok && !!res.json.content_type.match(trigger.type);
       }
       break;
     }
     case 'files': {
       const res = e as ResponseWithJson<RemoteFiles>;
-      if (
-        typeof trigger.name === 'string' &&
-        res.json.files.every((file) => file.name.match(trigger.name))
-      ) {
-        return true;
+      if (typeof trigger.name === 'string') {
+        ok = ok && res.json.files.every((file) => file.name.match(trigger.name));
       }
-      if (
-        typeof trigger.type === 'string' &&
-        res.json.files.every((file) => file.content_type.match(trigger.type))
-      ) {
-        return true;
+      if (typeof trigger.type === 'string') {
+        ok = ok && res.json.files.every((file) => file.content_type.match(trigger.type));
       }
       break;
     }
     case 'select': {
       const res = e as ResponseWithJson<SelectWithResponse>;
-      if (
-        typeof trigger.question?.match === 'string' &&
-        res.json.question.match(trigger.question.match)
-      ) {
-        return true;
+      if (typeof trigger.question?.match === 'string') {
+        ok = ok && !!res.json.question.match(trigger.question.match);
       }
-      if (typeof trigger.response === 'number' && res.json.response === trigger.response) {
-        return true;
+      if (typeof trigger.response === 'number') {
+        ok = ok && res.json.response === trigger.response;
       }
       if (
         typeof trigger.response?.match === 'string' &&
-        typeof res.json.response === 'number' &&
-        res.json.options[res.json.response].match(trigger.response.match)
+        typeof res.json.response === 'number'
       ) {
-        return true;
+        ok = ok && !!res.json.options[res.json.response].match(trigger.response.match);
       }
       break;
     }
@@ -112,21 +103,19 @@ export function isTriggerFired(
     case 'note_deleted': {
       const res = e as ResponseWithJson<NoteCreated>;
       const note = res.json;
-      if (typeof trigger.title === 'string' && note.title.match(trigger.title)) {
-        return true;
+      if (typeof trigger.title === 'string') {
+        ok = ok && !!note.title.match(trigger.title);
       }
-      if (
-        typeof trigger.has_attachments === 'boolean' &&
-        trigger.has_attachments == note.has_attachments
-      ) {
-        return true;
+      if (typeof trigger.has_attachments === 'boolean') {
+        ok = ok && trigger.has_attachments == !!note.has_attachments;
       }
       break;
     }
     default:
+      ok = false;
       break;
   }
-  return false;
+  return ok;
 }
 
 export function isScheduleTrigger(trigger: WorkflowTrigger | undefined) {

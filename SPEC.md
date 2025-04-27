@@ -116,7 +116,7 @@ on:
     name: "regex_pattern"   # Optional: Regex pattern to match against file name
     type: "regex_pattern"   # Optional: Regex pattern to match against content type
   ```
-  Note: If both `name` and `type` are specified, either condition will trigger (OR condition)
+  Note: If both `name` and `type` are specified, both conditions must match (AND condition)
 
 - `files`: Triggered when multiple files are uploaded
   ```yaml
@@ -125,7 +125,7 @@ on:
     type: "regex_pattern"   # Optional: Regex pattern to match against all content types
   ```
   Note: 
-  - If both `name` and `type` are specified, either condition will trigger (OR condition)
+  - If both `name` and `type` are specified, both conditions must match (AND condition)
   - All files must match the specified pattern (AND condition for multiple files)
 
 - `select`: Triggered by selection responses
@@ -140,7 +140,7 @@ on:
   ```
   Note: 
   - At least one of `question` or `response` must be specified
-  - If both are specified, both conditions must match (OR condition)
+  - If both are specified, both conditions must match (AND condition)
 
 - `note_created`, `note_updated`, `note_deleted`: Triggered by note operations
   ```yaml
@@ -148,7 +148,7 @@ on:
     title: "regex_pattern"      # Optional: Match against note title
     has_attachments: true/false # Optional: Match notes with/without attachments
   ```
-  Note: If both parameters are specified, either condition will trigger (OR condition)
+  Note: If both parameters are specified, both conditions must match (AND condition)
 
 - `join`: Triggered when a bot joins a talk
   - No parameters required
